@@ -126,6 +126,11 @@ TODO
 
 ## Privacy
 
+In order to guarantee message privacy, we want the following properties:
+
+- key for every message
+- TODO (basically everything in the double ratchet)
+
 Fundamentally, messages need to be encrypted with a key that both parties share
 and agree upon.
 
@@ -134,33 +139,48 @@ users to do the following on each message send:
 
 1. Generate a random AES key
 2. Meet in person with every person in the chat and type the key into the other
-   person's device before sending every message. Obviously this is not a
-good experience for anybody, so we have to devise a way to share the key that
-doesn't involve meeting before every message and typing AES keys.
+   person's device before sending every message. Obviously this is not a good
+   experience for anybody, so we have to devise a way to share the key that
+   doesn't involve meeting before every message and typing AES keys.
 
 We want something that allows us to (a) securely share the key and (b) rotate
 the key automatically after each message.
 
 ### Securely Sharing Keys
 
-N^2 problem: we need to share the key to every user in the chat.
-
 Luckily, we already know about established methods for exchanging keys across an
 insecure channel: Diffie-Hellman!
 
-But for Diffie-Hellman, we need a key on both sides to do the ECDH against. TODO
-one time keys
+But for Diffie-Hellman, we need a key on both sides to do the ECDH against.
+
+TODO one time keys
 
 ### Rotating Keys
 
 HKDF
 
-- 2 fundamental types of keys:
+### N^2 problem: we need to share the key to every user in the chat.
+
+Solution: Megolm
+
+### Pitfall: what if they key send fails or we don't have it for some reason?
+
+- could happen due to:
+  - logging into a new device
+  - bug
+- key requests!
+  - clients can request keys from other devices
+
+### Key chatter requires the device to be online
+
+- key backup
+
+* 2 fundamental types of keys:
   - message keys - encrypt the content of the message
   - identity keys - cryptographically verify that the message was sent by the
     person who claims to have sent it
 
-- 3 ways to get message keys
+* 3 ways to get message keys
   - via sharing megolm keys via olm sessions
   - via key chatter between own devices
   - via key backup
@@ -168,6 +188,6 @@ HKDF
   - q: how to know whether we should send a key to another device?
     - verification
 
-- identity keys - device authenticity
+* identity keys - device authenticity
   - device signing keys
   - cross-signing keys
