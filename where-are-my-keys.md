@@ -1,31 +1,59 @@
 ---
-title: Where are my keys?
+title: Where Are My Keys?
 subtitle: Demystifiying Matrix Cryptography
 description: |
-  If you've used Matrix for any period of time, you will know that Matrix has a
-  lot of keys. There are keys for devices, keys for users, keys for messages,
-  keys for the keys for messages, keys for backups, keys for the keys to the
-  backups. In this talk, I'm going to try to provide a framework for thinking
-  about keys in Matrix. I also will discuss some of the pitfalls both baked into
-  the spec and those which are a function of the nature of a networked protocol.
+  Matrix has a lot of keys. There are keys for devices, keys for users, keys for
+  messages, keys for backups, keys for the keys to the backups, etc. All of
+  these keys provide different functionality. There are a lot of resources
+  explaining message keys (with the olm/megolm protocol), but not as many
+  explaining the rest of the keys in the Matrix protocol. This talk intends to
+  be an overview of those keys which provide infrastructure for key backups, key
+  sharing, device verification, and cross-signing.
+
+  This talk is designed for people with a basic understanding of the various
+  Matrix features. You do not need to know anything about cryptography to gain
+  value from this talk. I will cover some basics of cryptosystems, but at a very
+  high level cursory level in order to motivate the selection of key algorithms.
 ---
 
 Hello, my name is Sumner, I'm a software engineer at Automattic working on
-Beeper and today I'm going to be talking about cryptography in Matrix.
+Beeper and today I'm going to be talking about cryptographic key infrastructure
+in Matrix.
 
 End-to-end encryption is one of the things which brought me to Matrix, and I'm
 sure that it's one of the factors that brought many of you to Matrix as well.
 
-However, Matrix's user experience with cryptography is often confusing. Part of
-this is due to the incompetence of other chat networks. Many don't even provide
-any cryptographically-guaranteed security, and others do so in a way that does
-not truly leave the user in control of their keys.
+However, Matrix's user experience with cryptography is often confusing. I mainly
+blame the other chat networks for their incompetence. Most other chat networks
+don't even provide any cryptographically-guaranteed security and privacy. Some
+networks provide encryption in a way that does not truly leave the user in
+control of their keys. Only a few networks (Signal) truly leave the user in
+control, and their UX is arguably worse than Matrix.
 
-Only a few networks (Signal) truly leave the user in control, and their UX is
-arguably worse than Matrix.
+In this talk, my goal is to discuss the cryptographic key _infrastructure_ in
+Matrix. What do I mean by "infrastructure"? I mean all of the features which
+support key sharing and identity verification, but don't actually themselves
+provide security. You can think of this talk as discussing the "UX layer of
+cryptography in Matrix". None of the things that I'm going to discuss are
+strictly necessary for ensuring secure E2EE communication, but without them,
+Matrix' UX would be horrible.
 
-In this talk, I want to demystify cryptography in Matrix and provide you with a
-framework for understanding what all of the keys are for.
+This is a diagram of the things we are going to talk about today. This diagram
+represents all of the infrastructure in Matrix for sharing, backing up, and
+verifying devices.
+
+TODO show diagram(s?) of what I'm going to explain.
+
+I know, it's pretty overwhelming. But don't worry, we are going to go
+step-by-step through this, at the end of the talk you should have an
+understanding of what each part of this diagram means.
+
+Let's start by orienting ourselves to the big picture of this diagram, then we
+will take a short detour into a few core cryptography concepts required to
+understand the diagram, and then we will break down the diagram into manageable
+pieces.
+
+---
 
 Beeper is an app that allows users to connect all of their chat networks to a
 single app. You can have FB, WA... TODO all in the same app.

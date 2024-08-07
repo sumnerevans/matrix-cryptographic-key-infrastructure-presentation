@@ -1,0 +1,597 @@
+\documentclass{beeper}
+
+\usepackage{fontawesome}
+\usepackage{etoolbox}
+\usepackage{textcomp}
+\usepackage[nodisplayskipstretch]{setspace}
+\usepackage{xspace}
+\usepackage{verbatim}
+\usepackage{multicol}
+\usepackage{soul}
+\usepackage{attrib}
+
+\usepackage{amsmath,amssymb,amsthm}
+
+\usepackage[linesnumbered,commentsnumbered,ruled,vlined]{algorithm2e}
+\newcommand\mycommfont[1]{\footnotesize\ttfamily\textcolor{blue}{#1}}
+\SetCommentSty{mycommfont}
+\SetKwComment{tcc}{ \# }{}
+\SetKwComment{tcp}{ \# }{}
+
+\usepackage{siunitx}
+
+\usepackage{tikz}
+\usepackage{pgfplots}
+\usetikzlibrary{decorations.pathreplacing,calc,arrows.meta,shapes,graphs}
+
+\setmainfont{Open Sans Light}
+\usefonttheme{serif}
+
+\makeatletter
+\patchcmd{\beamer@sectionintoc}{\vskip1.5em}{\vskip0.5em}{}{}
+\makeatother
+
+% Math stuffs
+\newcommand{\Z}{\mathbb{Z}}
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\N}{\mathbb{N}}
+\newcommand{\lcm}{\text{lcm}}
+\newcommand{\Inn}{\text{Inn}}
+\newcommand{\Aut}{\text{Aut}}
+\newcommand{\Ker}{\text{Ker}\ }
+\newcommand{\la}{\langle}
+\newcommand{\ra}{\rangle}
+
+\newcommand{\yournewcommand}[2]{Something #1, and #2}
+
+\newenvironment{question}[1]{\par\textbf{Question #1.}\par}{}
+
+\newcommand{\pmidg}[1]{\parbox{\widthof{#1}}{#1}}
+\newcommand{\splitslide}[4]{
+    \noindent
+    \begin{minipage}{#1 \textwidth - #2 }
+        #3
+    \end{minipage}%
+    \hspace{ \dimexpr #2 * 2 \relax }%
+    \begin{minipage}{\textwidth - #1 \textwidth - #2 }
+        #4
+    \end{minipage}
+}
+
+\newcommand{\frameoutput}[1]{\frame{\colorbox{white}{#1}}}
+
+\newcommand{\tikzmark}[1]{%
+\tikz[baseline=-0.55ex,overlay,remember picture] \node[inner sep=0pt,] (#1)
+{\vphantom{T}};
+}
+
+\newcommand{\braced}[3]{%
+    \begin{tikzpicture}[overlay,remember picture]
+        \draw [thick,decorate,decoration={brace,raise=1ex,amplitude=4pt},blue] (#2.south west-|T1.south west) -- node[anchor=west,left,xshift=-1.8ex,text=olive]{#3} (#1.north west-|T1.south west);
+    \end{tikzpicture}
+}
+
+\title{Where Are My Keys?}
+\subtitle{A Survey of Matrix Cryptographic Key Infrastructure}
+\author{Sumner Evans}
+\institute{Beeper (Automattic)}
+\date{21 September 2024}
+
+\begin{document}
+
+\begingroup
+\def\insertframenumber{\relax}
+\begin{frame}
+    \titlepage
+
+    \note[item]{
+        Hello, my name is Sumner, I'm a software engineer at Automattic working
+        on Beeper and today I'm going to be talking about cryptographic key
+        infrastructure in Matrix.
+    }
+    \note[item]{
+        End-to-end encryption is one of the things which brought me to Matrix,
+        and I'm sure that it's one of the factors that brought many of you to
+        Matrix as well.
+    }
+    \note[item]{
+        However, Matrix's user experience with cryptography is often confusing.
+        I mainly blame the other chat networks for their incompetence. Most
+        other chat networks don't even provide any cryptographically-guaranteed
+        security and privacy. Some networks provide encryption in a way that
+        does not truly leave the user in control of their keys. Only a few
+        networks (Signal) truly leave the user in control, and their UX is
+        arguably worse than Matrix.
+    }
+    \note[item]{
+        In this talk, my goal is to discuss the cryptographic key
+        \textit{infrastructure} in Matrix. What do I mean by ``infrastructure''?
+        I mean all of the features which support key sharing and identity
+        verification, but don't actually themselves provide security. You can
+        think of this talk as discussing the ``UX layer of cryptography in
+        Matrix''. None of the things that I'm going to discuss are strictly
+        necessary for ensuring secure E2EE communication, but without them,
+        Matrix' UX would be horrible.
+    }
+\end{frame}
+\endgroup
+
+\begin{frame}{Overview}
+    \includegraphics[width=\textwidth]{images/overview}
+
+    \note[item]{
+        This is a diagram of the things we are going to talk about today. This
+        diagram represents all of the infrastructure in Matrix for sharing,
+        backing up, and verifying devices.
+    }
+    \note[item]{
+        I know, it's pretty overwhelming. But don't worry, we are going to go
+        step-by-step through this, at the end of the talk you should have an
+        understanding of what each part of this diagram means.
+    }
+    \note[item]{
+        Let's start by orienting ourselves to the big picture of this diagram,
+        then we will take a short detour into a few core cryptography concepts
+        required to understand the diagram, and then we will break down the
+        diagram into manageable pieces. And at the end of the talk hopefully you
+        have a complete understanding of Matrix cryptographic key
+        infrastructure.
+    }
+    \note[item]{
+        You can see that there are two users represented in the diagram: Bob on
+        the top and Alice on the bottom. The diagram is focused on how the
+        Megolm session created by Alice Device 1 is shared to Bob and to Alice's
+        Device 2.
+    }
+    \note[item]{
+        The diagram is color-coded.
+        \begin{itemize}
+            \item Red nodes represent data that does not leave the device.
+            \item Green nodes represent data is public and can be shared with
+                the server and other users.
+            \item Orange nodes represent data that can be shared with trusted
+                parties, or with members of the same Matrix room.
+            \item Blue and purple nodes represent cryptographic operations.
+        \end{itemize} 
+    }
+\end{frame}
+
+\begin{frame}{Overview: Keeping the Goal In Mind}
+    \includegraphics[width=\textwidth]{images/message-security}
+
+    \note[item]{
+        It's important that we don't loose sight of the reason for all of this
+        infrastructure. In orange, we have the core of Matrix security: the
+        Megolm session.
+    }
+    \note[item]{
+        We aren't going to discuss this in detail today. I wrote an article
+        about Megolm which you can find on my blog if you want to learn more.
+        I'll provide a link at the end of the talk.
+    }
+    \note[item]{
+        But for now, the only thing you need to know about it is that
+        it provides end-to-end encryption for messages and needs to be shared
+        with devices that Alice wants to be able to read her messages. So,
+        \begin{itemize}
+            \item other users in the same Matrix room, or
+            \item other devices belonging to your own user.
+        \end{itemize}
+    }
+    \note[item]{
+        All of the rest of the infrastructure in this diagram is to facilitate
+        transferring that Megolm session, or verifying that a device should in
+        fact have access to that Megolm session.
+    }
+\end{frame}
+
+\begin{frame}{Overview: Key Backup}
+    % TODO
+    \includegraphics[width=\textwidth]{images/message-security}
+
+    \note[item]{
+        For example, in this lower portion of the diagram, we have key backup
+        which allows you to backup your keys to the server for your other
+        devices.
+    }
+\end{frame}
+
+\begin{frame}{Overview: Device Verification}
+    \includegraphics[width=\textwidth]{images/device-verification}
+
+    \note[item]{
+        Here we have the infrastructure necessary for determining if we trust
+        other of our own devices.
+    }
+\end{frame}
+
+\begin{frame}{Overview: User Verification}
+    \includegraphics[width=\textwidth]{images/overview}
+
+    \note[item]{
+        And here we have the infrastructure necessary for determining if we
+        trust another user's device.
+    }
+\end{frame}
+
+\begin{frame}{Overview: Server Side Secret Storage (SSSS)}
+    % TODO
+    \includegraphics[width=\textwidth]{images/overview}
+
+    \note[item]{
+        Lastly, on the left we have the infrastructure necessary for storing
+        secrets on the server encrypted by a recovery code.
+    }
+\end{frame}
+
+\section{Cryptography Crash Course}
+\note{
+    Before we dive deeper into the details of the diagram, we need to discuss
+    some basic cryptography primitives.
+
+    I will try and explain these in simple terms. It's not going to be
+    mathematically rigorous, but will focus on the \textbf{functionality} that
+    each cryptographic primitive provides.
+}
+
+\begin{frame}{Encryption: Symmetric vs Asymmetric}
+\end{frame}
+
+\begin{frame}{Asymmetric Signatures}
+\end{frame}
+
+\begin{frame}{Hashes and HMAC}
+\end{frame}
+
+\begin{frame}{Key-Derivation Functions (HKDF)}
+\end{frame}
+
+\begin{frame}{Diffie-Hellman Key Exchanges}
+\end{frame}
+
+\section{Sharing Keys}
+
+\begin{frame}{Olm Events}
+    % TODO m.room_key
+    % TODO m.room_key_request and m.forwarded_room_key
+\end{frame}
+
+\begin{frame}{Key Backup}
+\end{frame}
+
+\section{Device Verification}
+
+\section{User Verification}
+
+\section{Server Side Secret Storage (SSSS)}
+
+\begin{frame}{Thank You for Listening!}
+    I've been Sumner Evans.
+
+    TODO slide link
+\end{frame}
+
+%\begin{frame}{A bit about me}
+%    My name is Sumner, I'm a \textbf{software engineer at Beeper}.
+%    \begin{itemize}
+%        \item I graduated from Colorado School of Mines in 2019 with a master's
+%            in CS.
+%        \item I teach as an adjunct professor at my alma mater.
+%        \item I enjoy skiing, volleyball, and football (soccer).
+%        \item I'm a 4th degree black belt in ATA taekwondo.
+%    \end{itemize}
+%    \pause
+%
+%    I became interested in Matrix when I was the chair of the ACM chapter at
+%    Mines. I was looking for an open source chat platform for the club to use,
+%    and Matrix fit the bill!
+%\end{frame}
+%
+%\begin{frame}{What I work on at Beeper}
+%    I am on the newly created \textit{Scaling} team.
+%
+%    Our current objective is to prepare Beeper for rocket-ship growth.
+%    \vspace{0.5cm}
+%    \pause
+%
+%    I was previously part of the \textit{Bridges} team. 
+%
+%    Notable projects included:
+%    \begin{itemize}
+%        \item Writing the LinkedIn bridge
+%        \item Adding bridge status reporting and message send status
+%        \item Implementing massive stability improvements in the Signal bridge
+%        \item Implementing incremental infinite backfill in our WhatsApp and
+%            Facebook bridges
+%    \end{itemize}
+%\end{frame}
+%
+%\begin{frame}{Overview}
+%    \setbeamertemplate{section in toc}[sections numbered]
+%    \tableofcontents[hideallsubsections]
+%
+%    \begin{block}{This talk is interactive!}
+%        If you have questions at any point, feel free to interrupt me.
+%    \end{block}
+%\end{frame}
+%
+%\section{A bit about Beeper}
+%
+%\begin{frame}{Beeper's mission}
+%    Our mission is to:\\
+%
+%    \begin{quote}
+%        make it easy for everyone on Earth to chat with each other.
+%    \end{quote}
+%    \pause
+%
+%    We specifically chose the word ``chat'' rather than ``communicate'' because
+%    we are focusing on \textit{people talking to one another}.
+%\end{frame}
+%
+%\begin{frame}{What is Beeper?}
+%    \begin{center}
+%        \textbf{Beeper is an app that brings all of your chat networks together into
+%            a single inbox.}
+%    \end{center}
+%    \centerline{\includegraphics[width=0.3\textwidth]{images/beeper-mobile}}
+%\end{frame}
+%
+%\begin{frame}{What is Beeper?}
+%    \textbf{Beeper allows you to consolidate messages from 15+ chat apps into a
+%        single inbox.}
+%
+%    \pause
+%    \begin{itemize}
+%        \item Beeper is available on on macOS, Windows, Linux iPhone, iPad,
+%            Android and Chrome OS.
+%        \item Beeper is built on top of the Matrix protocol.
+%        \item Beeper encrypts all chats, including bridged chats, by
+%            default\footnote[frame]{We have to momentarily decrypt your chat
+%            messages to translate from the other network to Matrix, but we never
+%            log or store your unencrypted messages.}.
+%    \end{itemize}
+%\end{frame}
+%
+%\begin{frame}{Bridging to a glorious Matrix future}
+%    We see bridges as a way to onboard users into the Matrix ecosystem.
+%
+%    Users can switch to a new app without loosing a single conversation!
+%    \pause
+%
+%    \vspace{1cm}
+%    \begin{center}
+%        \Large
+%        \textbf{We encourage our users to connect \textit{all} of their chat
+%        networks to Beeper.}
+%    \end{center}
+%\end{frame}
+%
+%\section{A bit about Beeper's current architecture}
+%
+%\begin{frame}{A diagram}
+%    \centerline{\includegraphics[width=1.15\textwidth]{images/current-architecture}}
+%
+%    Each user gets their own bridge for each network they connect.
+%\end{frame}
+%
+%\begin{frame}{Advantages of our architecture}
+%    \begin{itemize}[<+->]
+%        \item ASMUX allows us to dynamically change what bridges are running
+%        \item Each users' bridge is \textbf{isolated}
+%        \item We can deploy \textbf{different bridge versions} to different sets
+%            of users
+%        \item Bridges can be stopped and started individually
+%        \item Double puppeting
+%    \end{itemize}
+%\end{frame}
+%
+%\begin{frame}{Disadvantages of our architecture}
+%    \begin{itemize}[<+->]
+%        \item We have to run a \textbf{lot} of bridges
+%        \item Synapse is not designed for a dynamic numbers of bridges
+%        \item If two users join the same chat on an external network, we end up
+%            with two rooms with the same data
+%        \item We run Synapse on AWS which is relatively expensive
+%        \item Synapse becomes a bottleneck for all traffic
+%    \end{itemize}
+%\end{frame}
+%
+%\begin{frame}{Back to the diagram}
+%    \centerline{\includegraphics[width=1.15\textwidth]{images/current-architecture}}
+%    The core software in this architecture is Synapse.
+%\end{frame}
+%
+%\begin{frame}{Stats}
+%    Because we encourage users to connect every chat network, we have a lot of
+%    puppet users.
+%
+%    \textbf{\large On average, each user brings 4716 puppeted users.}
+%    \vspace{0.4cm}
+%    \pause
+%
+%    All of these puppets represent real people on other networks, so they
+%    each generate their own traffic.
+%
+%    \textbf{\large On average, each user and their puppets collectively account
+%        for 100k events!}
+%    \vspace{0.4cm}
+%    \pause
+%
+%    None of that traffic is federated, but it has to go to Synapse which is
+%    designed with federation front-and-center!
+%\end{frame}
+%
+%\begin{frame}{A few more notes}
+%    \begin{itemize}[<+->]
+%        \item \textbf{Synapse is aggressively federated}
+%
+%            Synapse has no special handling of federated vs unfederated rooms.
+%
+%        \item \textbf{Synapse does not handle message floods well}
+%
+%            Synapse falls over when users bridge some large Telegram chats and
+%            Discord servers.
+%
+%        \item \textbf{Deleting rooms from Synapse is hard}
+%
+%            We end up with lots of \textit{dead} rooms when users delete their
+%            bridges and never turn it back on (or need a hard bridge reset).
+%    \end{itemize}
+%\end{frame}
+%
+%\begingroup
+%\def\insertframenumber{\relax}
+%\begin{frame}[standout]
+%    \Large
+%    Solution: shard our homeserver based on bridged vs. unbridged traffic
+%\end{frame}
+%\endgroup
+%
+%\section{Our new architecture}
+%
+%\begin{frame}{A sharded future}
+%    \centerline{\includegraphics[width=1.15\textwidth]{images/new-architecture}}
+%
+%    Let's talk about the differences from the old architecture\ldots
+%\end{frame}
+%
+%\begin{frame}{Splitting the homeserver, keeping the protocol}
+%    \Large
+%    \centering
+%    This new architecture allows us to handle Matrix-native federated traffic
+%    separately from our high-throughput unfederated bridge traffic.
+%    \pause
+%
+%    \textbf{All while maintaining API compatibility with clients, bridges, and
+%    the Matrix federation!}
+%\end{frame}
+%
+%\begin{frame}{A sharded future}
+%    \centerline{\includegraphics[width=1.15\textwidth]{images/new-architecture}}
+%
+%    Let's talk about the differences from the old architecture\ldots
+%\end{frame}
+%
+%\begin{frame}{Hungryserv: why is it hungry?}
+%    \Large
+%    Because it's unfed\pause{erated!}
+%\end{frame}
+%
+%\begin{frame}{Hungryserv}
+%    We run a \textbf{Hungryserv} instance for every user to handle that user's
+%    bridge traffic.
+%    \pause
+%
+%    \begin{itemize}[<+->]
+%        \item If there's a message flood from a bridge, it only affects that
+%            user.
+%        \item We don't have to store all of the bridge events and users in our
+%            Synapse database.
+%        \item Synapse is less resource constrained and can do what it does best:
+%            federate with other Matrix homeservers.
+%    \end{itemize}
+%    \pause[\thebeamerpauses]
+%
+%    We are also currently looking into ways of using \textbf{SQLite} in
+%    production using Litestream.
+%\end{frame}
+%
+%\begin{frame}{Hungryserv: aggressively unfederated}
+%    Each bridge belongs to a single user, so federation is unnecessary. \\
+%    \pause
+%
+%    \begin{quote}
+%        When your DAG is a linked-list, don't store it as a DAG.
+%    \end{quote}
+%    \pause
+%
+%    Being unfederated means that:
+%    \begin{itemize}
+%        \item we can avoid implementing the state resolution algorithm,
+%        \item event storage requires less metadata,
+%        \item deletions can be optimized, and
+%        \item infinite backfill becomes an simple batch SQL operation.
+%    \end{itemize}
+%\end{frame}
+%
+%\begin{frame}{Hungryserv: goals, and non-goals}
+%    \textbf{Goals}
+%    \begin{itemize}
+%        \item Be fast
+%        \item Be compatible with Beeper clients (and mostly compatible with
+%            Element clients)
+%        \item Be API-compatible with the Appservice API for bridges
+%    \end{itemize}
+%    \pause
+%
+%    \textbf{Non-goals}
+%    \begin{itemize}
+%        \item Be federated
+%        \item Be fully spec compliant
+%    \end{itemize}
+%\end{frame}
+%
+%\begin{frame}{A sharded future}
+%    \centerline{\includegraphics[width=1.15\textwidth]{images/new-architecture}}
+%
+%    Let's talk about the differences from the old architecture\ldots
+%\end{frame}
+%
+%\begin{frame}{Roomserv}
+%    \textbf{Roomserv} is a service which splits client requests between Synapse
+%    and Hungryserv.
+%
+%    Roomserv merges the responses from the two homeservers to make it appear as
+%    a single homeserver to the client.
+%\end{frame}
+%
+%\begin{frame}{A sharded future}
+%    \centerline{\includegraphics[width=1.15\textwidth]{images/new-architecture}}
+%
+%    Let's talk about the differences from the old architecture\ldots
+%\end{frame}
+%
+%\begin{frame}{No more ASMUX}
+%    Hungryserv natively supports dynamic registration of app services, and knows
+%    how to route requests to the correct bridge.
+%    \pause
+%
+%    \textbf{We no longer have to rely on the single transactions firehose from
+%    Synapse.}
+%\end{frame}
+%
+%\begin{frame}{A sharded future}
+%    \centerline{\includegraphics[width=1.15\textwidth]{images/new-architecture}}
+%
+%    Let's talk about the differences from the old architecture\ldots
+%\end{frame}
+%
+%\begin{frame}{A multi-cloud future?}
+%    The resources for each user can be moved closer to them using a multi-cloud,
+%    or multi-region strategy.
+%
+%    This will help reduce latency (especially to bridged networks) and allow for
+%    us to deploy in more flexible and cost-effective environments.
+%\end{frame}
+%
+%\begin{frame}{A sharded future}
+%    \centerline{\includegraphics[width=1.15\textwidth]{images/new-architecture}}
+%
+%    Let's talk about the differences from the old architecture\ldots
+%\end{frame}
+
+\begingroup
+\def\insertframenumber{\relax}
+
+\begin{frame}[standout]
+    \Large
+    Questions?
+\end{frame}
+
+\endgroup
+
+\end{document}
+% Local Variables:
+% TeX-command-extra-options: "-shell-escape"
+% End:
