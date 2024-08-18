@@ -116,13 +116,36 @@
 \end{frame}
 \endgroup
 
-\begin{frame}{Overview}
+\begin{frame}{Why Cryptography?}
+    Matrix uses cryptography for two main purposes:\pause
+
+    \begin{enumerate}
+        \item \textbf{Message Security} --- only the people who are part of the
+            conversation should be allowed to view messages of the conversation.
+            \pause
+        \item \textbf{Identity} --- verifying that a user or device is who they
+            say they are.
+    \end{enumerate}
+
+    \note[item]{
+        As an additional benefit of how Matrix achieves this, encrypted messages
+        cannot be tampered with by a man-in-the-middle actor without the
+        receiving party knowing.
+    }
+    \note[item]{
+        Note that one of the most important parts of identity this is verifying
+        that our own devices are under our own control and we should allow our
+        own clients to share keys to it.
+    }
+\end{frame}
+
+\begin{frame}{Big Picture}
     \includegraphics[width=\textwidth]{images/overview}
 
     \note[item]{
-        This is a diagram of the things we are going to talk about today. This
-        diagram represents all of the infrastructure in Matrix for sharing,
-        backing up, and verifying devices.
+        This diagram represents all of the infrastructure in Matrix for
+        providing those core features of message security and identity
+        verification.
     }
     \note[item]{
         I know, it's pretty overwhelming. But don't worry, we are going to go
@@ -156,7 +179,7 @@
     }
 \end{frame}
 
-\begin{frame}{Overview: Keeping the Goal In Mind}
+\begin{frame}{Big Picture: Message Security}
     \includegraphics[width=\textwidth]{images/message-security}
 
     \note[item]{
@@ -172,10 +195,13 @@
     \note[item]{
         But for now, the only thing you need to know about it is that
         it provides end-to-end encryption for messages and needs to be shared
-        with devices that Alice wants to be able to read her messages. So,
+        with devices that Alice wants to be able to read her messages. So it
+        needs to be shared to
         \begin{itemize}
-            \item other users in the same Matrix room, or
-            \item other devices belonging to your own user.
+            \item the devices of other users in the same Matrix room (in this
+                case Bob)
+            \item but her device also needs to share the session with her other
+                devices.
         \end{itemize}
     }
     \note[item]{
@@ -185,36 +211,71 @@
     }
 \end{frame}
 
-\begin{frame}{Overview: Key Backup}
+\begin{frame}{Big Picture: Identity}
     % TODO
     \includegraphics[width=\textwidth]{images/message-security}
 
     \note[item]{
-        For example, in this lower portion of the diagram, we have key backup
-        which allows you to backup your keys to the server for your other
-        devices.
+        Let's move on to identity. The highlighted parts of the diagram provide
+        a cryptographic way to verify that a device belongs to a particular
+        user.
     }
-\end{frame}
-
-\begin{frame}{Overview: Device Verification}
-    \includegraphics[width=\textwidth]{images/device-verification}
-
     \note[item]{
-        Here we have the infrastructure necessary for determining if we trust
-        other of our own devices.
+        There are actually two pieces here...
     }
 \end{frame}
 
-\begin{frame}{Overview: User Verification}
+\begin{frame}{Big Picture: Identity: Device Verification}
+    % TODO
     \includegraphics[width=\textwidth]{images/overview}
 
     \note[item]{
         And here we have the infrastructure necessary for determining if we
-        trust another user's device.
+        trust another device for our own user.
     }
 \end{frame}
 
-\begin{frame}{Overview: Server Side Secret Storage (SSSS)}
+\begin{frame}{Big Picture: Identity: User Verification}
+    % TODO
+    \includegraphics[width=\textwidth]{images/overview}
+
+    \note[item]{
+        And here we have the infrastructure necessary for determining if we
+        trust another user and their devices.
+    }
+\end{frame}
+
+\begin{frame}{Big Picture: The Other Stuff}
+    % TODO
+    \includegraphics[width=\textwidth]{images/message-security}
+
+    \note[item]{
+        So what is all of the other stuff? That is the \textbf{infrastructure}
+        for sharing the Megolm session around to other devices and users.
+    }
+\end{frame}
+
+\begin{frame}{Big Picture: The Other Stuff: To-Device}
+    % TODO
+    \includegraphics[width=\textwidth]{images/message-security}
+
+    \note[item]{
+        For example, in this arrow represents sending the Megolm session via
+        Olm-encrypted to-device messages.
+    }
+\end{frame}
+
+\begin{frame}{Big Picture: The Other Stuff: Key Backup}
+    % TODO
+    \includegraphics[width=\textwidth]{images/message-security}
+
+    \note[item]{
+        This lower section of the diagram represents key backup which allows you
+        to backup your keys to the server and restore from your other devices.
+    }
+\end{frame}
+
+\begin{frame}{Big Picture: The Other Stuff: Server Side Secret Storage}
     % TODO
     \includegraphics[width=\textwidth]{images/overview}
 
@@ -235,15 +296,79 @@
 }
 
 \begin{frame}{Encryption: Symmetric vs Asymmetric}
+    There are two main categories of encryption schemes:
+
+    \begin{itemize}
+        \item \textbf{Symmetric} --- both \textbf{the encryptor and the
+            decryptor share the same key} and that key is used in both the
+            encryption and decryption of the message
+            \pause
+        \item \textbf{Asymmetric} --- \textbf{the encryptor needs the public
+            key, and the decryptor needs the private key} and the encryptor
+            encrypts the message with the public key, and the private key is
+            required to decrypt the message
+            \pause
+    \end{itemize}
 \end{frame}
 
 \begin{frame}{Asymmetric Signatures}
+    In asymmetric encryption schemes, there are two main operations:
+    \textbf{encrypt} and \textbf{sign}.
+    \pause
+
+    \note[item]{
+        We discussed encryption already.
+    }
+    \note[item]{
+        You use the public key to encrypt a message, and the private key to
+        decrypt, but...
+    }
+
+    Signing uses the \textit{private} key, and anyone who possesses the
+    \textit{public} key can verify the signature.
 \end{frame}
 
 \begin{frame}{Hashes and HMAC}
+    A \textbf{cryptographic hash function} is a one-directional function which
+    takes an arbitrarily large set of data and produces a unique fixed-size
+    output (called the hash).
+    \pause
+
+    \textbf{Given the same data, a hash function will always return the same
+    output.}
+    \pause
+
+    This allows us to verify that the data did not change in transit (for
+    example, by a malicious actor).
+    \pause
+
+    Hashes are vulnerable to \textbf{metadata attacks}. To prevent these, we use
+    HMAC which adds a secret key to the hash.
+
+    \note[item]{
+        If you hash the same message multiple times, you will receive the same
+        value, and an attacker could use this information to deduce the
+        frequency of certain messages being sent.
+    }
+    \note[item]{
+        How the key is added is an implementation detail that is not relevant to
+        your understanding of what functionality HMAC provides.
+    }
 \end{frame}
 
 \begin{frame}{Key-Derivation Functions (HKDF)}
+    Sometimes, we want to turn a small key into a larger key (or set of larger
+    keys).
+
+    \note[item]{
+        For example, we might want to ``stretch'' a 32-byte shared secret into a
+        32-byte AES key, a 16-bit AES IV, and a 32-byte HMAC key.
+    }
+
+    \textbf{Key-Derivation Functions (KDFs)} are used to do this.
+    \pause
+
+    Matrix uses HKDF which uses HMAC for the key derivation process.
 \end{frame}
 
 \begin{frame}{Diffie-Hellman Key Exchanges}
