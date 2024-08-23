@@ -482,6 +482,69 @@
 \end{frame}
 
 \begin{frame}{Key Backup}
+    % TODO (highlighted key backup)
+    \includegraphics[width=\textwidth]{images/message-security}
+
+    \note[item]{
+        That's where \textbf{key backup} comes into play. Key backup allows us
+        to store keys on the server, and restore them from our other devices.
+    }
+
+    \note[item]{
+        Let's zoom in and see what's going on.
+    }
+\end{frame}
+
+\begin{frame}{Key Backup}
+    % TODO (zoomed-in key backup)
+    \includegraphics[width=\textwidth]{images/message-security}
+
+    \note[item]{
+        In the middle here we have this green ``key backup'' thing which
+        is stored on the server. We're trying to get the Megolm key from Alice's
+        Device 1 to her Device 2, so left to right.
+    }
+    \note[item]{
+        There are two pieces to key backup:
+
+        \begin{itemize}
+            \item the version which includes a public key for the backup.
+            \item the encrypted session data (there are many of these in a
+                backup (one per megolm session stored).
+        \end{itemize}
+    }
+
+    \note[item]{
+        The first thing to note is that AES is used on both sides to do the
+        encryption and decryption, so only the encrypted version is stored on
+        the server. But, where do we get the key and IV from?
+    }
+
+    \note[item]{
+        Well, we get it from HKDF. So, the next question os where do we get the
+        key for HKDF?
+    }
+
+    \note[item]{That comes from a call to ECDH.}
+
+    \note[item]{
+        Note that all this up to ECDH is \textbf{the same on both the encrypting
+        and decrypting sides!}
+    }
+
+    \note[item]{
+        Recall that ECDH requires a public key and a private key, so where do we
+        get those?
+    }
+
+    \note[item]{
+        This is where the sides diverge.
+    }
+
+    \[
+        \textbf{ECDH}(A_{private}, B_{public}) = \textbf{ECDH}(B_{private}, A_{public}) = K_{shared}.
+    \]
+
 \end{frame}
 
 \section{Device Verification}
@@ -493,7 +556,7 @@
 \begin{frame}{Thank You for Listening!}
     I've been Sumner Evans.
 
-    TODO slide link
+    TODO slide link (just to the website article)
 \end{frame}
 
 %\begin{frame}{A bit about me}
