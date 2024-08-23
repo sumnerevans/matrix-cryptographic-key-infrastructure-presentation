@@ -372,13 +372,113 @@
 \end{frame}
 
 \begin{frame}{Diffie-Hellman Key Exchanges}
+    We need a way to share keys with both the sending and receiving parties
+    across an unsecured channel.
+    \note[item]{
+        For example, we may need to share a MAC or AES key.
+        This could be done in-person, but that is very impractical.
+
+        That's where the Diffie-Hellman (DH) Key Exchange method comes in.
+    }
+    \pause
+
+    \textbf{Diffie-Hellman} is a method for using public-key cryptography to
+    facilitate keysharing.
+
+    \note[item]{
+        Since Matrix uses elliptic-curve cryptography, the specific variant of
+        Diffie-Hellman that Matrix uses is ECDH (the elliptic curve variant).
+
+        I'm not going to discuss the actual mathematical mechanism behind ECDH
+        as it's quite complex and not relevant to understanding how Matrix uses
+        ECDH. However, it is essential to understand the main feature it
+        provides:
+    }
+
+
+    \[
+        \textbf{ECDH}(A_{private}, B_{public}) = \textbf{ECDH}(B_{private}, A_{public}) = K_{shared}.
+    \]
+
+    \note[item]{
+        If \(A_{public}\) and \(B_{private}\) are both available, then
+        \(K_{shared}\) can be recovered. This is true even if \(A_{private}\)
+        has been discarded.
+    }
+\end{frame}
+
+\begin{frame}{Big Picture}
+    \includegraphics[width=\textwidth]{images/overview}
+
+    \note[item]{
+        Let's go back to the big picture now. Recall that the blue and purple
+        nodes represent cryptographic operations.
+
+        All of these are one of the operations that we discussed. Now we are
+        going to talk about how they are applied to Matrix in the context of
+        this diagram.
+    }
 \end{frame}
 
 \section{Sharing Keys}
+\note{
+    We're going to start with key sharing. How do we get keys from one device to
+    another?
+}
 
-\begin{frame}{Olm Events}
-    % TODO m.room_key
-    % TODO m.room_key_request and m.forwarded_room_key
+\begin{frame}{Big Picture: Message Security}
+    \includegraphics[width=\textwidth]{images/message-security}
+
+    \note[item]{
+        Remember, what the key that we want to share is the Megolm key. That's
+        what encrypts the messages.
+    }
+
+    \note[item]{
+        There are two ways to share these: encrypted olm events and key backup.
+    }
+\end{frame}
+
+\begin{frame}{Encrypted Olm Events}
+    % TODO (just highlight the to-device line)
+    \includegraphics[width=\textwidth]{images/message-security}
+
+    \note[item]{
+        Encrypted olm events are represented by this arrow. They are sent via
+        to-device messages which allow you to send messages to specific devices
+        (rather than rooms).
+    }
+
+    \note[item]{
+        I'm not going to discuss how Olm encryption works. It's already been
+        covered many times since it's basically just the Signal double-ratchet
+        algorithm.
+    }
+
+    \note[item]{
+        For our purposes, it's sufficient to know that we can send keys securely
+        via to-device events via Olm. We can also request keys from our own
+        \textbf{verified} devices. We will talk about how we know a device is
+        verified later.
+    }
+
+    \note[item]{
+        This seems great, why do we have anything else?
+    }
+
+    \note[item]{
+        Well, new logins are the issue. Say Alice just logged in on Device 2 and
+        finished verification.
+
+        \begin{itemize}
+            \item If Device 1 is \textit{online}, she can send key requests, but
+                there's likely going to be a ton of requests due to all of the
+                keys in all of the rooms to her Device 1. This will make Device
+                1 do a lot of work sending back all the keys.
+            \item If Device 1 is \textit{\textbf{off}line}, her send key
+                requests won't be answered.
+        \end{itemize}
+    }
 \end{frame}
 
 \begin{frame}{Key Backup}
