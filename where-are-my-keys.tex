@@ -395,10 +395,20 @@
         provides:
     }
 
-
     \[
         \textbf{ECDH}(A_{private}, B_{public}) = \textbf{ECDH}(B_{private}, A_{public}) = K_{shared}.
     \]
+
+    \note[item]{
+        In this equation, \(A_{private}\) and \(A_{public}\) and \(B_{private}\)
+        and \(B_{public}\) are related to one another.
+    }
+
+    \note[item]{
+        The key here is that we will get the same value out of ECDH
+        \textit{regardless of which private key you have}. You do need the other
+        public key, but those are public and can be shared freely.
+    }
 
     \note[item]{
         If \(A_{public}\) and \(B_{private}\) are both available, then
@@ -541,33 +551,212 @@
         This is where the sides diverge.
     }
 
+    \pause
     \[
         \textbf{ECDH}(A_{private}, B_{public}) = \textbf{ECDH}(B_{private}, A_{public}) = K_{shared}.
     \]
 
+    \note[item]{
+        Recall that we need two keypairs for ECDH.
+        \begin{itemize}
+            \item The first keypair is the Megolm backup keypair.
+            \item The second keypair is the Epemeral keypair.
+        \end{itemize}
+    }
+
+    \note[item]{
+        We can use either private key and the other keypair's public key and get
+        the same value out of ECDH.
+
+        \begin{itemize}
+            \item The encrypting side gets its private key from this
+                \textit{ephemeral keypair}. It's ephemeral because the private
+                part can be discarded immediately after the encryption is done.
+
+                Thus, it uses the Megolm backup public key as its public key.
+            \item The decrypting side gets its private key from the Megolm
+                backup private key.
+
+                Thus, it uses the ephemeral public key as its public key.
+        \end{itemize}
+    }
+
+    \note[item]{
+        \textbf{Critically} you must have the Megolm backup private key to
+        decrypt the key backup. We will discuss how that is stored later.
+    }
+
+    % TODO talk about why the MAC is necessary
 \end{frame}
 
 \section{Device Verification}
+\note{
+    Now, let's discuss device verification.
+}
+
+\begin{frame}{Who Can We Send Keys To?}
+    % TODO (just highlight the to-device line)
+    \includegraphics[width=\textwidth]{images/message-security}
+
+    \note[item]{
+        Recall how I said that we only want to forward room keys to our
+        \textbf{verified} devices?
+    }
+
+    \note[item]{
+        Now, we are going to discuss how verification status is determined.
+    }
+
+    \note[item]{
+        The answer is...
+    }
+\end{frame}
+
+\begin{frame}{Signatures}
+    % TODO (highlight the signatures from the device key -> master key ->
+    % self-signing key -> device key)
+    \includegraphics[width=\textwidth]{images/message-security}
+
+    \note[item]{
+        \textbf{Signatures!}
+    }
+
+    \note[item]{
+        Let's zoom in on this part.
+    }
+
+\end{frame}
+
+\begin{frame}{Signatures}
+    % TODO (zoomed in highlight the signatures from the device key -> master key
+    % -> self-signing key -> device key)
+    \includegraphics[width=\textwidth]{images/message-security}
+
+    \note[item]{
+        Remember, signatures use the \textit{private} key, and anyone who
+        possesses the \textit{public} key can verify the signature.
+    }
+
+    \note[item]{
+        Often, we use ``trust'' terminology. When we ``trust'' a key, we have a
+        signature (or chain of signatures) that sign the public key.
+    }
+
+    \note[item]{
+        Ultimately, the key we want to trust is the other device key.
+    }
+
+    \note[item]{
+        We can use our device key to directly generate the signature for the
+        other device key.
+
+        But that is inconvenient. When we log in a new device, we will have to
+        create a signature from all our other devices for that new device. And
+        that device will have to create a signature for all of the existing
+        devices!
+    }
+
+    \note[item]{
+        So, we introduce a new user-wide key called the ``self-signing key''
+        because it signs our own device keys.
+    }
+
+    \note[item]{
+        We use the self-signing key to sign the device keys but how do we know
+        if we should trust the self-signing key?
+    }
+
+    \note[item]{
+        That's where the \textbf{master key} comes in. The master key signs the
+        self-signing key.
+    }
+
+    \note[item]{
+        We then trust the master key by signing it with our device private key.
+    }
+
+    \note[item]{
+        So the \textbf{chain-of-trust} is device private key $\rightarrow$
+        master public key which corresponds to its private key $\rightarrow$
+        self-signing public key which corresponds to its private key
+        $\rightarrow$ device public key.
+    }
+
+    \note[item]{
+        This allows us to trust a single key (in this case, the master key) and
+        then trust all of our own devices.
+    }
+\end{frame}
 
 \section{User Verification}
 
+% You might know that you can verify other users as well as your own devices.
+% You might want to do this to ensure that the device that sent the message is
+%   controlled by the person you think it is.
+% That uses the user-signing key, which signs other users' master keys.
+
 \section{Server Side Secret Storage (SSSS)}
 
+% There are a lot of private keys for cross-signing and key backup. These are
+% stored on each of your devices, and can be shared to other devices using
+% encrypted to-device events.
+
+% But what if you sign out of all of your devices or lose access to them?
+
+% We can use server-side secret storage (SSSS) to store the keys encrypted
+% within account data.
+
+% The key that they are encrypted using is basically the recovery key. There is
+% an HKDF transformation which gives you the actual key, but it's basically just
+% your recovery key that unlocks the encrypted account data.
+
+% This bottom part isn't actually strictly necessary. It allows you to verify
+% that your recovery key is correct. If you want the details here, you can read
+% the blog post associated with this talk.
+
+\begin{frame}{Big Picture}
+    \includegraphics[width=\textwidth]{images/overview}
+
+    \note[item]{
+        Let's go back to the overview.
+    }
+    \note[item]{
+        We've talked about each piece of this puzzle.
+        \begin{itemize}
+            \item We talked about to-device events
+            \item We talked about key backup
+            \item We talked about self-signing of devices
+            \item We talked about signing of other users
+            \item And then we talked about server-side secret storage
+        \end{itemize}
+    }
+    \note[item]{
+        I hope that this presentation has helped you understand how it fits
+        together.
+    }
+    \note[item]{
+        My goal is to convince people that Matrix cryptography is not scary.
+        It's complex, but not inaccessible.
+    }
+    \note[item]{
+        If you have access to all of the underlying cryptography primitives, all
+        of this is something that any security-conscious programmer could
+        implement.
+    }
+    \note[item]{
+        You almost certainly should not implement the cryptography primitives
+        yourself, but composing them together is not that bad.
+    }
+    \note[item]{
+        And with that, I'll open it up to questions
+    }
+\end{frame}
+
 \begin{frame}{Thank You for Listening!}
-    I've been Sumner Evans.
+    \center{Questions?}
 
-    TODO slide link (just to the website article)
+    TODO slide link (just to the website article which will have this PDF)
 \end{frame}
-
-\begingroup
-\def\insertframenumber{\relax}
-
-\begin{frame}[standout]
-    \Large
-    Questions?
-\end{frame}
-
-\endgroup
 
 \end{document}
 % Local Variables:
