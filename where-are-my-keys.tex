@@ -71,8 +71,7 @@
     \end{tikzpicture}
 }
 
-\title{Where Are My Keys?}
-\subtitle{A Survey of Matrix Cryptographic Key Infrastructure}
+\title{Matrix Cryptographic Key Infrastructure}
 \author{Sumner Evans}
 \institute{Beeper (Automattic)}
 \date{21 September 2024}
@@ -442,14 +441,21 @@
 \end{frame}
 
 \begin{frame}{Encrypted Olm Events}
-    % TODO (just highlight the to-device line)
-    \includegraphics[width=\textwidth]{images/message-security}
+    \includegraphics[width=\textwidth]{images/other-stuff-to-device}
 
     \note[item]{
         Encrypted olm events are represented by these arrows. They are sent via
         to-device messages which allow you to send messages to specific devices
         (rather than rooms).
     }
+
+    \note[item]{
+        Let's zoom in to see what's going on.
+    }
+\end{frame}
+
+\begin{frame}{Encrypted Olm Events}
+    \includegraphics[width=\textwidth]{images/to-device-zoomed}
 
     \note[item]{
         I'm not going to discuss how Olm encryption works. It's already been
@@ -459,9 +465,9 @@
 
     \note[item]{
         For our purposes, it's sufficient to know that we can send keys securely
-        via to-device events via Olm. We can also request keys from our own
-        \textbf{verified} devices. We will talk about how we know a device is
-        verified later.
+        to other users' devices and our own devices using via to-device events
+        via Olm. We can also request keys from our own \textbf{verified}
+        devices. We will talk about how we know a device is verified later.
     }
 
     \note[item]{
@@ -484,8 +490,7 @@
 \end{frame}
 
 \begin{frame}{Key Backup}
-    % TODO (highlighted key backup)
-    \includegraphics[width=\textwidth]{images/message-security}
+    \includegraphics[width=\textwidth]{images/other-stuff-key-backup}
 
     \note[item]{
         That's where \textbf{key backup} comes into play. Key backup allows us
@@ -499,8 +504,7 @@
 \end{frame}
 
 \begin{frame}{Key Backup}
-    % TODO (zoomed-in key backup)
-    \includegraphics[width=\textwidth]{images/message-security}
+    \includegraphics[width=\textwidth]{images/key-backup-zoomed}
 
     \note[item]{
         In the middle here we have this green ``key backup'' thing which
@@ -543,10 +547,13 @@
     \note[item]{
         This is where the sides diverge.
     }
+\end{frame}
 
-    \pause
+\begin{frame}{Key Backup}
+    \includegraphics[width=\textwidth]{images/key-backup-zoomed}
+
     \[
-        \textbf{ECDH}(A_{private}, B_{public}) = \textbf{ECDH}(B_{private}, A_{public}) = K_{shared}.
+        \textbf{ECDH}(A_{private}, B_{public}) = \textbf{ECDH}(B_{private}, A_{public}) = K_{shared}
     \]
 
     \note[item]{
@@ -579,7 +586,37 @@
         decrypt the key backup. We will discuss how that is stored later.
     }
 
-    % TODO talk about why the MAC is necessary
+    \note[item]{
+        For each Megolm session that we back up in key backup, we store the
+        ephemeral public key and the ciphertext from AES together in the
+        encrypted session data object.
+    }
+
+    \note[item]{
+        But there's another item that we store in this object: the MAC.
+    }
+
+    \note[item]{
+        Recall that MACs are meant to ensure that the ciphertext hasn't been
+        tampered with by a malicious or incompetent party.
+    }
+
+    \note[item]{
+        We get the HMAC key from the same HKDF as the AES key and IV.
+    }
+
+    \note[item]{
+        The other input to HMAC \textit{should} have been the ciphertext.
+        However, the original implementation in libolm failed to do this
+        correctly and instead just passed an empty buffer, and it has been
+        de-facto spec ever since.
+    }
+
+    \note[item]{
+        So, the MAC is not really useful at all in its current state. I'm hoping
+        that a future version of the spec fixes this. Maybe when we get signed
+        backups we will get that.
+    }
 \end{frame}
 
 \section{Device Verification}
@@ -588,8 +625,7 @@
 }
 
 \begin{frame}{Who Can We Send Keys To?}
-    % TODO (just highlight the to-device line)
-    \includegraphics[width=\textwidth]{images/message-security}
+    \includegraphics[width=\textwidth]{images/other-stuff-to-device}
 
     \note[item]{
         Recall how I said that we only want to forward room keys to our
@@ -606,9 +642,7 @@
 \end{frame}
 
 \begin{frame}{Signatures}
-    % TODO (highlight the signatures from the device key -> master key ->
-    % self-signing key -> device key)
-    \includegraphics[width=\textwidth]{images/message-security}
+    \includegraphics[width=\textwidth]{images/identity-device-verification}
 
     \note[item]{
         \textbf{Signatures!}
