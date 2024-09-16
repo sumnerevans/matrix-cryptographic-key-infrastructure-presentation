@@ -1,4 +1,4 @@
-FILENAME=where-are-my-keys
+FILENAME=matrix-cryptographic-key-infrastructure
 LATEX_COMPILER=xelatex -shell-escape
 
 all: $(FILENAME).pdf
