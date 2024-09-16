@@ -655,9 +655,7 @@
 \end{frame}
 
 \begin{frame}{Signatures}
-    % TODO (zoomed in highlight the signatures from the device key -> master key
-    % -> self-signing key -> device key)
-    \includegraphics[width=\textwidth]{images/message-security}
+    \includegraphics[width=\textwidth]{images/identity-device-verification-zoomed}
 
     \note[item]{
         Remember, signatures use the \textit{private} key, and anyone who
@@ -718,8 +716,6 @@
 \section{User Verification}
 
 \begin{frame}{Additional Identity Verification}
-    % TODO (zoomed in highlight the signatures from the device key -> master key
-    % -> user-signing key -> user master key)
     \includegraphics[width=\textwidth]{images/message-security}
 
     \note[item]{
@@ -758,19 +754,36 @@
 \section{Server Side Secret Storage (SSSS)}
 
 \begin{frame}{Don't Forget Your Keys}
-    % TODO (highlight all the keys that need to be stored)
-    \includegraphics[width=\textwidth]{images/message-security}
+    \includegraphics[width=\textwidth]{images/overview.png}
 
     \note[item]{
-        You've probably noticed that there's a lot of private keys that need to
-        be stored for all of this to work properly. The keys are stored each of
-        your devices and can be shared with your other verified devices using
-        encrypted to-device events.
+        You may have noticed there's a lot of private keys involved in all of
+        this.
+    }
+
+\end{frame}
+
+\begin{frame}{Don't Forget Your Keys}
+    \includegraphics[width=\textwidth]{images/secret-keys-highlighted}
+
+    \note[item]{
+        There are private keys for key backup, user signing, and device signing
+        and they all need to be stored for all of this to work properly.
+    }
+
+    \note[item]{
+        The keys are stored each of your devices and can be shared with your
+        other verified devices using encrypted to-device events.
     }
 
     \note[item]{
         But what if you sign out of all of your devices or lose access to them?
     }
+
+\end{frame}
+
+\begin{frame}{Don't Forget Your Keys}
+    \includegraphics[width=\textwidth]{images/other-stuff-ssss.png}
 
     \note[item]{
         That's where server-side secret storage comes in: it allows you to store
@@ -780,8 +793,7 @@
 \end{frame}
 
 \begin{frame}{Don't Forget Your Keys}
-    % TODO (zoomed in on SSSS)
-    \includegraphics[width=\textwidth]{images/message-security}
+    \includegraphics[width=\textwidth]{images/ssss-zoomed.png}
 
     \note[item]{
         The key that they are encrypted using is basically the recovery key.
