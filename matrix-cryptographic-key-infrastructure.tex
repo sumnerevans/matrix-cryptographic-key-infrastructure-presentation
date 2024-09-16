@@ -227,8 +227,8 @@
     \includegraphics[width=\textwidth]{images/identity-device-verification}
 
     \note[item]{
-        And here we have the infrastructure necessary for determining if we
-        trust another device for our own user.
+        Here we have the infrastructure necessary for determining if we trust
+        another device for our own user.
     }
 \end{frame}
 
@@ -423,8 +423,8 @@
 
 \section{Sharing Keys}
 \note{
-    We're going to start with key sharing. How do we get keys from one device to
-    another?
+    We're going to start by discussing how we get keys from one device to
+    another. This process is generally called ``key sharing''.
 }
 
 \begin{frame}{Big Picture: Message Security}
@@ -465,9 +465,12 @@
 
     \note[item]{
         For our purposes, it's sufficient to know that we can send keys securely
-        to other users' devices and our own devices using via to-device events
-        via Olm. We can also request keys from our own \textbf{verified}
-        devices. We will talk about how we know a device is verified later.
+        to other users' devices via these \texttt{m.room\_key} events and our
+        own devices using via to-device events via Olm. We can also request keys
+        by sending \texttt{m.room\_key\_request} events to our own
+        \textbf{verified} devices and the other devices can respond using
+        \texttt{m.forwarded\_room\_key} events. We will talk about how we know a
+        device is verified later.
     }
 
     \note[item]{
@@ -754,7 +757,7 @@
 \section{Server Side Secret Storage (SSSS)}
 
 \begin{frame}{Don't Forget Your Keys}
-    \includegraphics[width=\textwidth]{images/overview.png}
+    \includegraphics[width=\textwidth]{images/overview}
 
     \note[item]{
         You may have noticed there's a lot of private keys involved in all of
@@ -783,7 +786,7 @@
 \end{frame}
 
 \begin{frame}{Don't Forget Your Keys}
-    \includegraphics[width=\textwidth]{images/other-stuff-ssss.png}
+    \includegraphics[width=\textwidth]{images/other-stuff-ssss}
 
     \note[item]{
         That's where server-side secret storage comes in: it allows you to store
@@ -793,7 +796,7 @@
 \end{frame}
 
 \begin{frame}{Don't Forget Your Keys}
-    \includegraphics[width=\textwidth]{images/ssss-zoomed.png}
+    \includegraphics[width=\textwidth]{images/ssss-zoomed}
 
     \note[item]{
         The key that they are encrypted using is basically the recovery key.
