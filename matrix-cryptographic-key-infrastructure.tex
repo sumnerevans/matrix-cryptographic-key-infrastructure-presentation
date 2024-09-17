@@ -85,32 +85,45 @@
 
     \note[item]{
         Hello, my name is Sumner, I'm a software engineer at Automattic working
-        on Beeper and today I'm going to be talking about cryptographic key
-        infrastructure in Matrix.
+        on Beeper.
     }
     \note[item]{
-        End-to-end encryption is one of the things which brought me to Matrix,
-        and I'm sure that it's one of the factors that brought many of you to
-        Matrix as well.
+        End-to-end encryption is one of the things which \textbf{brought me to
+        Matrix}, and I'm sure that it's one of the factors that brought many of
+        you to Matrix as well.
     }
     \note[item]{
         However, Matrix's user experience with cryptography is often confusing.
-        I mainly blame the other chat networks for their incompetence. Most
-        other chat networks don't even provide any cryptographically-guaranteed
-        security and privacy. Some networks provide encryption in a way that
-        does not truly leave the user in control of their keys. Only a few
-        networks (Signal) truly leave the user in control, and their UX is
-        arguably worse than Matrix.
     }
     \note[item]{
-        In this talk, my goal is to discuss the cryptographic key
-        \textit{infrastructure} in Matrix. What do I mean by ``infrastructure''?
-        I mean all of the features which support key sharing and identity
-        verification, but don't actually themselves provide security. You can
-        think of this talk as discussing the ``UX layer of cryptography in
-        Matrix''. None of the things that I'm going to discuss are strictly
-        necessary for ensuring secure E2EE communication, but without them,
-        Matrix' UX would be horrible.
+        I mainly \textbf{blame the other chat networks} for their incompetence.
+    }
+    \note[item]{
+        Most other chat networks \textbf{don't provide} any
+        cryptographically-guaranteed security and privacy.
+    }
+    \note[item]{
+        Of the ones that do, most do so in a way that \textbf{does not truly
+        leave the user in control of their keys}.
+    }
+    \note[item]{
+        Only a few networks, namely Signal, truly leave the user in control, and
+        their UX is arguably worse than Matrix.
+    }
+    \note[item]{
+        In this talk, my goal is to discuss the \textbf{cryptographic key
+        \textit{infrastructure} in Matrix}.
+    }
+    \note[item]{
+        What do I mean by ``infrastructure''? I mean all of the features which
+        \textbf{support key sharing and identity verification}, but don't
+        actually themselves provide security.
+    }
+    \note[item]{
+        You can think of this talk as discussing the ``UX layer of cryptography
+        in Matrix''. None of the things that I'm going to discuss are strictly
+        necessary for ensuring secure communication, but without them, Matrix'
+        UX would be horrible.
     }
 \end{frame}
 \endgroup
@@ -127,14 +140,29 @@
     \end{enumerate}
 
     \note[item]{
-        As an additional benefit of how Matrix achieves this, encrypted messages
-        cannot be tampered with by a man-in-the-middle actor without the
-        receiving party knowing.
+        Now, let's discuss what Matrix even uses cryptography for. There are two
+        main purposes...
+    }
+
+    \note[item]{
+        The first is \textbf{message security}. We only want the people who are
+        part of the conversation to be able to read the messages in the
+        conversation.
     }
     \note[item]{
-        Note that one of the most important parts of identity this is verifying
-        that our own devices are under our own control and we should allow our
-        own clients to share keys to it.
+        As an additional benefit of how Matrix achieves this, encrypted messages
+        \textbf{cannot be tampered with} by a \textbf{man-in-the-middle} actor
+        without the receiving party knowing.
+    }
+
+    \note[item]{
+        The second reason for using cryptography in Matrix is \textbf{identity}
+        verification. We want to know that a specific device or user is who they
+        say they are.
+    }
+    \note[item]{
+        Note that one of the most important uses for identity verification is
+        verifying your own devices so you can share keys with them.
     }
 \end{frame}
 
@@ -142,31 +170,28 @@
     \includegraphics[width=\textwidth]{images/overview}
 
     \note[item]{
-        This diagram represents all of the infrastructure in Matrix for
-        providing those core features of message security and identity
-        verification.
+        Let's take a look at what we are going to talk about today. This diagram
+        shows \textbf{how those core features are implemented} as well as the
+        infrastructure that supports them.
     }
     \note[item]{
-        I know, it's pretty overwhelming. But don't worry, we are going to go
-        step-by-step through this, at the end of the talk you should have an
-        understanding of what each part of this diagram means.
+        I know, it's pretty overwhelming. But don't worry, we are \textbf{going
+        to go step-by-step} through this. By the end of the talk you should have
+        an understanding of what each part of this diagram means.
     }
     \note[item]{
-        Let's start by orienting ourselves to the big picture of this diagram,
-        then we will take a short detour into a few core cryptography concepts
-        required to understand the diagram, and then we will break down the
-        diagram into manageable pieces. And at the end of the talk hopefully you
-        have a complete understanding of Matrix cryptographic key
-        infrastructure.
+        It's probably too small to read, but I want to start by
+        \textbf{orienting ourselves} to what's going on in this diagram, and we
+        will zoom in later.
     }
     \note[item]{
-        You can see that there are two users represented in the diagram: Bob on
-        the top and Alice on the bottom. The diagram is focused on how the
-        Megolm session created by Alice Device 1 is shared to Bob and to Alice's
-        Device 2.
+        You can see that there are \textbf{two users represented} in the
+        diagram: Bob on the top and Alice on the bottom. The diagram is
+        \textbf{focused on how} the Megolm session created by Alice Device 1 is
+        \textbf{shared} to Bob and to Alice's Device 2.
     }
     \note[item]{
-        The diagram is color-coded.
+        You'll notice that the diagram is color-coded.
         \begin{itemize}
             \item Red nodes represent data that does not leave the device.
             \item Green nodes represent data is public and can be shared with
@@ -182,25 +207,27 @@
     \includegraphics[width=\textwidth]{images/message-security}
 
     \note[item]{
-        It's important that we don't loose sight of the reason for all of this
-        infrastructure. In orange, we have the core of Matrix security: the
-        Megolm session.
+        It's important that we \textbf{don't loose sight} of the reason for all
+        of this infrastructure. Highlighted in \textbf{orange}, we have the
+        \textbf{core of Matrix security: the Megolm session}.
     }
     \note[item]{
-        We aren't going to discuss this in detail today. I wrote an article
-        about Megolm which you can find on my blog if you want to learn more.
-        I'll provide a link at the end of the talk.
+        We aren't going to discuss this in detail today. I \textbf{wrote an
+        article} about Megolm which you can find on my blog if you want to learn
+        more. I'll provide a link at the end of the talk.
     }
     \note[item]{
-        But for now, the only thing you need to know about it is that
-        it provides end-to-end encryption for messages and needs to be shared
-        with devices that Alice wants to be able to read her messages. So it
-        needs to be shared to
+        For now, the only thing you need to know about it is that it's what is
+        used to \textbf{encrypt and decrypt messages}.
+    }
+    \note[item]{
+        The Megolm session needs to be \textbf{shared} with all the devices that
+        Alice wants to be \textbf{able to read her messages}. So it needs to be
+        shared to
         \begin{itemize}
-            \item the devices of other users in the same Matrix room (in this
-                case Bob)
-            \item but her device also needs to share the session with her other
-                devices.
+            \item the devices of \textbf{other users} in the Matrix room (in
+                this case Bob)
+            \item as well as \textbf{her other devices}.
         \end{itemize}
     }
     \note[item]{
@@ -227,8 +254,8 @@
     \includegraphics[width=\textwidth]{images/identity-device-verification}
 
     \note[item]{
-        Here we have the infrastructure necessary for determining if we trust
-        another device for our own user.
+        Here we have the infrastructure necessary for determining if we
+        \textbf{trust another device for our own user}.
     }
 \end{frame}
 
@@ -237,7 +264,7 @@
 
     \note[item]{
         And here we have the infrastructure necessary for determining if we
-        trust another user and their devices.
+        \textbf{trust another user and their devices}.
     }
 \end{frame}
 
@@ -254,8 +281,8 @@
     \includegraphics[width=\textwidth]{images/other-stuff-to-device}
 
     \note[item]{
-        For example, in this arrow represents sending the Megolm session via
-        Olm-encrypted to-device messages.
+        For example, in this arrow represents \textbf{sending} the Megolm
+        session via \textbf{Olm-encrypted to-device messages}.
     }
 \end{frame}
 
@@ -263,8 +290,9 @@
     \includegraphics[width=\textwidth]{images/other-stuff-key-backup}
 
     \note[item]{
-        This lower section of the diagram represents key backup which allows you
-        to backup your keys to the server and restore from your other devices.
+        This \textbf{lower-right section} of the diagram represents \textbf{key
+        backup} which allows you to \textbf{backup} your keys to the
+        \textbf{server} and restore from your other devices.
     }
 \end{frame}
 
@@ -272,19 +300,35 @@
     \includegraphics[width=\textwidth]{images/other-stuff-ssss}
 
     \note[item]{
-        Lastly, on the left we have the infrastructure necessary for storing
-        secrets on the server encrypted by a recovery code.
+        And over here on the \textbf{left} we have the infrastructure necessary
+        for \textbf{storing secrets} on the \textbf{server} encrypted by a
+        \textbf{recovery code}.
+    }
+\end{frame}
+
+\begin{frame}{Big Picture}
+    \includegraphics[width=\textwidth]{images/overview}
+
+    \note[item]{
+        So, that's a \textbf{quick overview} of this diagram.
+    }
+
+    \note[item]{
+        \textbf{Before} we dive deeper into the \textbf{details} of the diagram,
+        we need to \textbf{discuss} some basic \textbf{cryptography primitives}.
+    }
+
+    \note[item]{
+        Then we will \textbf{break down} the diagram into manageable pieces.
     }
 \end{frame}
 
 \section{Cryptography Crash Course}
 \note{
-    Before we dive deeper into the details of the diagram, we need to discuss
-    some basic cryptography primitives.
-
-    I will try and explain these in simple terms. It's not going to be
-    mathematically rigorous, but will focus on the \textbf{functionality} that
-    each cryptographic primitive provides.
+    I will try and explain the cryptography primitives in \textbf{simple terms}.
+    It's \textbf{not} going to be \textbf{mathematically rigorous}, but will
+    focus on the \textbf{functionality} that each cryptographic primitive
+    provides.
 }
 
 \begin{frame}{Encryption: Symmetric vs Asymmetric}
@@ -300,23 +344,36 @@
             encrypts the message with the public key, and the private key is
             required to decrypt the message
     \end{itemize}
+
+    \note[item]{
+        Let's start with \textbf{encryption}. Encryption allows us to make a
+        message that can only be read by another user who has the key.
+    }
+    \note[item]{
+        \textit{Read slide}
+    }
+    \note[item]{
+        There are a few variants of asymmetric encryption schemes. Matrix uses
+        elliptic-curves for its asymmetric encryption needs.
+    }
 \end{frame}
 
 \begin{frame}{Asymmetric Signatures}
-    In asymmetric encryption schemes, there are two main operations:
-    \textbf{encrypt} and \textbf{sign}.
+    In addition to providing encryption, asymmetric encryption schemes also
+    provide \textbf{signatures}.
     \pause
-
-    \note[item]{
-        We discussed encryption already.
-    }
-    \note[item]{
-        You use the public key to encrypt a message, and the private key to
-        decrypt, but...
-    }
 
     Signing uses the \textit{private} key, and anyone who possesses the
     \textit{public} key can verify the signature.
+
+    \note[item]{
+        Only the private key can create a valid signature.
+    }
+
+    \note[item]{
+        This is the opposite of encryption where we use the public key to
+        encrypt, and the private key to decrypt.
+    }
 \end{frame}
 
 \begin{frame}{Hashes and HMAC}
@@ -337,13 +394,21 @@
     HMAC which adds a secret key to the hash.
 
     \note[item]{
-        If you hash the same message multiple times, you will receive the same
-        value, and an attacker could use this information to deduce the
-        frequency of certain messages being sent.
+        \textit{Read slide to last bullet}
     }
     \note[item]{
-        How the key is added is an implementation detail that is not relevant to
-        your understanding of what functionality HMAC provides.
+        If you \textbf{hash} the \textbf{same message} multiple times, you will
+        receive the \textbf{same value}, and an attacker could use this
+        information to deduce the \textbf{frequency} of certain
+        \textbf{messages} being sent.
+    }
+    \note[item]{
+        \textit{Read last bullet}
+    }
+    \note[item]{
+        \textbf{How} the \textbf{key} is \textbf{added} is an implementation
+        detail that is \textbf{not relevant}. All you need to know is that HMAC
+        prevents metadata attacks.
     }
 \end{frame}
 
@@ -352,8 +417,15 @@
     keys).
 
     \note[item]{
-        For example, we might want to ``stretch'' a 32-byte shared secret into a
-        32-byte AES key, a 16-byte AES IV, and a 32-byte HMAC key.
+        \textit{Read first bullet}
+    }
+    \note[item]{
+        For example, we might want to \textbf{``stretch''} a 32-byte
+        \textbf{shared secret} into a key and IV for AES and a key for HMAC
+        which would be 80 bytes in total.
+    }
+    \note[item]{
+        \textit{Read rest of slide}
     }
 
     \textbf{Key-Derivation Functions (KDFs)} are used to do this.
@@ -363,13 +435,17 @@
 \end{frame}
 
 \begin{frame}{Diffie-Hellman Key Exchanges}
-    We need a way to share keys with both the sending and receiving parties
-    across an unsecured channel.
+    Often, we need a way to share keys with both the sending and receiving
+    parties across an unsecured channel.
     \note[item]{
-        For example, we may need to share a MAC or AES key.
-        This could be done in-person, but that is very impractical.
+        \textit{Read first bullet}... such as the internet.
+    }
+    \note[item]{
+        We \textbf{can share} keys securely \textbf{in-person}, but that is very
+        \textbf{impractical}.
 
-        That's where the Diffie-Hellman (DH) Key Exchange method comes in.
+        That's where the \textbf{Diffie-Hellman (DH) Key Exchange} method comes
+        in.
     }
     \pause
 
@@ -377,8 +453,12 @@
     facilitate keysharing.
 
     \note[item]{
-        Since Matrix uses elliptic-curve cryptography, the specific variant of
-        Diffie-Hellman that Matrix uses is ECDH (the elliptic curve variant).
+        \textit{Read second bullet slide}
+    }
+    \note[item]{
+        Since Matrix uses elliptic-curve cryptography, the \textbf{specific
+        variant} of Diffie-Hellman that Matrix uses is ECDH (the elliptic curve
+        variant).
 
         I'm not going to discuss the actual mathematical mechanism behind ECDH
         as it's quite complex and not relevant to understanding how Matrix uses
@@ -391,20 +471,26 @@
     \]
 
     \note[item]{
-        In this equation, \(A_{private}\) and \(A_{public}\) and \(B_{private}\)
-        and \(B_{public}\) are related to one another.
+        \textit{Read equation}
+    }
+    \note[item]{
+        In this equation, we have two public/private keypairs: \(A\) and \(B\).
+    }
+    \note[item]{
+        If we have \textbf{either one} of the \textbf{private} keys and the
+        \textbf{other public key}, we can \textbf{generate} the same
+        \textbf{shared secret}.
+    }
+    \note[item]{
+        \textit{Go through example of what to do if you have \(A_{private}\) vs
+        having \(B_{private}\)}
     }
 
     \note[item]{
-        The key here is that we will get the same value out of ECDH
-        \textit{regardless of which private key you have}. You do need the other
-        public key, but those are public and can be shared freely.
-    }
-
-    \note[item]{
-        If \(A_{public}\) and \(B_{private}\) are both available, then
-        \(K_{shared}\) can be recovered. This is true even if \(A_{private}\)
-        has been discarded.
+        We will get the \textbf{same value} out of ECDH \textit{regardless of
+        which private key you have}. You only \textbf{need} the other
+        \textbf{public} key, and those are \textbf{public} keys that can be
+        spread around like butter.
     }
 \end{frame}
 
@@ -412,31 +498,41 @@
     \includegraphics[width=\textwidth]{images/overview}
 
     \note[item]{
-        Let's go back to the big picture now. Recall that the blue and purple
-        nodes represent cryptographic operations.
-
-        All of these are one of the operations that we discussed. Now we are
-        going to talk about how they are applied to Matrix in the context of
-        this diagram.
+        Let's go \textbf{back to the big picture} now. Recall that the
+        \textbf{blue} and \textbf{purple} nodes represent \textbf{cryptographic
+        operations}.
+    }
+    \note[item]{
+        All these \textbf{nodes} are one of the operations that we discussed.
+    }
+    \note[item]{
+        \textit{Point out a couple of HKDF, AES, ECDH, HMAC}
+    }
+    \note[item]{
+        Now, let's discuss \textbf{how} these are \textbf{composed} together to
+        provide \textbf{features} within Matrix.
     }
 \end{frame}
 
 \section{Sharing Keys}
 \note{
-    We're going to start by discussing how we get keys from one device to
-    another. This process is generally called ``key sharing''.
+    We're going to start by discussing how we get \textbf{keys} from \textbf{one
+    device to another}. This process is generally called \textbf{``key
+    sharing''}.
 }
 
 \begin{frame}{Big Picture: Message Security}
     \includegraphics[width=\textwidth]{images/message-security}
 
     \note[item]{
-        Remember, what the key that we want to share is the Megolm key. That's
-        what encrypts the messages.
+        Remember, what we are \textbf{trying to share} is the \textbf{Megolm
+        key} because that's what \textbf{encrypts and decrypts} the
+        \textbf{messages}.
     }
 
     \note[item]{
-        There are two ways to share these: encrypted olm events and key backup.
+        There are \textbf{two} ways to share these: \textbf{encrypted olm
+        events} and \textbf{key backup}.
     }
 \end{frame}
 
@@ -444,9 +540,10 @@
     \includegraphics[width=\textwidth]{images/other-stuff-to-device}
 
     \note[item]{
-        Encrypted olm events are represented by these arrows. They are sent via
-        to-device messages which allow you to send messages to specific devices
-        (rather than rooms).
+        \textbf{Encrypted Olm events} are represented by the \textbf{arrows}
+        highlighted in \textbf{red}. They are sent via \textbf{to-device}
+        messages which allow you to send messages to specific devices (rather
+        than rooms).
     }
 
     \note[item]{
@@ -458,19 +555,34 @@
     \includegraphics[width=\textwidth]{images/to-device-zoomed}
 
     \note[item]{
+        I got rid of all the irrelevant nodes
+    }
+    \note[item]{
+        You can see that we can \textbf{send} keys to \textbf{other users'
+        devices} via \texttt{m.room\_key} events.
+    }
+    \note[item]{
+        And actually we use \texttt{m.room\_key} events to send keys to our
+        \textbf{own devices} as well.
+    }
+    \note[item]{
+        We can also \textbf{request keys} by sending
+        \texttt{m.room\_key\_request} events to our \textbf{own verified
+        devices} and the other devices can respond using
+        \texttt{m.forwarded\_room\_key} events. We will talk about how we know a
+        device is verified later.
+    }
+
+    \note[item]{
         I'm not going to discuss how Olm encryption works. It's already been
         covered many times since it's basically just the Signal double-ratchet
         algorithm.
     }
 
     \note[item]{
-        For our purposes, it's sufficient to know that we can send keys securely
-        to other users' devices via these \texttt{m.room\_key} events and our
-        own devices using via to-device events via Olm. We can also request keys
-        by sending \texttt{m.room\_key\_request} events to our own
-        \textbf{verified} devices and the other devices can respond using
-        \texttt{m.forwarded\_room\_key} events. We will talk about how we know a
-        device is verified later.
+        For our purposes, it's \textbf{sufficient} to know that we can
+        \textbf{send keys securely} to \textbf{other users' devices} and our
+        \textbf{own devices} via these events.
     }
 
     \note[item]{
@@ -478,16 +590,30 @@
     }
 
     \note[item]{
-        Well, new logins are the issue. Say Alice just logged in on Device 2 and
-        finished verification.
+        Well, \textbf{new logins} are the issue. Say Alice just \textbf{logged
+        in} on \textbf{Device 2} and finished verification.
 
         \begin{itemize}
-            \item If Device 1 is \textit{online}, she can send key requests, but
-                there's likely going to be a ton of requests due to all of the
-                keys in all of the rooms to her Device 1. This will make Device
-                1 do a lot of work sending back all the keys.
-            \item If Device 1 is \textit{\textbf{off}line}, her send key
-                requests won't be answered.
+            \item If Device 1 is \textit{online}, she can send key requests to
+                Device 1 and Device 1 can respond.
+
+                This \textbf{works}, but there will likely be a \textbf{lot of
+                keys} to request. \textbf{Every user} in \textbf{every encrypted
+                room} has diffrent keys.
+
+                This will make \textbf{Device 1} do a \textbf{lot of work} to
+                send back all the keys.
+
+                On \textbf{mobile devices}, keysharing \textbf{can't} really be
+                done in the \textbf{background}, \textbf{especially} on
+                \textbf{iOS}.
+
+                Even on \textbf{desktop} devices, it's still a lot of
+                \textbf{work} to \textbf{process} a \textbf{flood} of key
+                \textbf{requests}.
+            \item But it's \textbf{even worse} if Device 1 is \textit{offline}.
+                In that case, Alice's key \textbf{requests} will \textbf{never
+                be answered}.
         \end{itemize}
     }
 \end{frame}
@@ -496,9 +622,10 @@
     \includegraphics[width=\textwidth]{images/other-stuff-key-backup}
 
     \note[item]{
-        That's where \textbf{key backup} comes into play. Key backup allows us
-        to store keys on the server, and restore them from our other devices
-        without the other devices needing to be online.
+        This ss where \textbf{key backup} comes into play. Key backup allows us
+        to \textbf{store keys} on the \textbf{server}, and \textbf{restore} them
+        from our \textbf{other devices} even if your \textbf{other devices} are
+        \textbf{offline} or \textbf{inaccessible}.
     }
 
     \note[item]{
@@ -510,133 +637,180 @@
     \includegraphics[width=\textwidth]{images/key-backup-zoomed}
 
     \note[item]{
-        In the middle here we have this green ``key backup'' thing which
-        is stored on the server. We're trying to get the Megolm key from Alice's
-        Device 1 to her Device 2, so left to right.
+        In the \textbf{middle} here we have the ``key backup'' in
+        \textbf{green}. Key backup is is \textbf{stored} on the \textbf{server}.
     }
     \note[item]{
-        There are two pieces to key backup:
+        In this diagram, we're trying to get the Megolm key \textbf{from}
+        Alice's \textbf{Device 1} to her \textbf{Device 2}, so \textbf{left to
+        right}.
+    }
+    \note[item]{
+        There are \textbf{two pieces} to key backup:
 
         \begin{itemize}
-            \item the version which includes a public key for the backup.
-            \item the encrypted session data (there are many of these in a
-                backup (one per megolm session stored)).
+            \item the \textbf{key backup version} which includes the
+                \textbf{backup public key}.
+            \item the \textbf{encrypted session data} for \textbf{each} of the 
+                backed-up Megolm \textbf{sessions}.
         \end{itemize}
     }
 
     \note[item]{
-        The first thing to note is that AES is used on both sides to do the
-        encryption and decryption, so only the encrypted version is stored on
-        the server. But, where do we get the key and IV from?
+        Let's discuss how this works.
     }
 
     \note[item]{
-        Well, we get it from HKDF. So, the next question is where do we get the
-        key for HKDF?
+        The \textbf{first thing} to note is that \textbf{AES} is used on
+        \textbf{both sides} to \textbf{encrypt} and \textbf{decrypt} the
+        \textbf{Megolm session}. \textbf{Only} the \textbf{encrypted} version is
+        \textbf{stored} on the \textbf{server}.
+    }
+    \note[item]{
+        But, \textbf{AES} needs a \textbf{key} and \textbf{initial vector}.
+        Where do we get that from? Well, we \textbf{get it from HKDF}.
+    }
+    \note[item]{
+        HKDF \textbf{requires a key as well}, so where do we get that from?
     }
 
     \note[item]{That comes from a call to ECDH.}
 
     \note[item]{
-        Note that all this up to ECDH is \textbf{the same on both the encrypting
-        and decrypting sides!}
+        Note that \textbf{everything so far} is \textbf{the same on both the
+        encrypting and decrypting sides!}
     }
 
     \note[item]{
-        Recall that ECDH requires a public key and a private key, so where do we
-        get those?
+        Recall that \textbf{ECDH} requires a \textbf{private key}, and the
+        \textbf{other public key}.
+    }
+\end{frame}
+
+\begin{frame}{Key Backup}
+    \begin{center}
+    \includegraphics[width=0.9\textwidth]{images/key-backup-zoomed}
+    \end{center}
+
+    \vspace{-2em}
+
+    \[\textbf{ECDH}(A_{private}, B_{public}) = \textbf{ECDH}(B_{private}, A_{public}) = K_{shared}\]
+
+    \note[item]{
+        Remember this formula? If you have \textbf{either private key}, we just
+        \textbf{need} the \textbf{other public key} to get the same value from
+        ECDH.
     }
 
     \note[item]{
-        This is where the sides diverge.
+        So where do we get the \(A\) and \(B\) keypairs from?
+        \begin{itemize}
+            \item The \textbf{first keypair} is the \textbf{Megolm backup
+                keypair}. The \textbf{public key} is stored in the \textbf{key
+                backup version}. The \textbf{private key} is a secret stored on
+                the \textbf{user's device}.
+            \item The \textbf{second keypair} is the \textbf{ephemeral keypair}.
+                A \textbf{new keypair} gets created for \textbf{each} backed up
+                session. It's \textbf{ephemeral because} the \textbf{private}
+                part is be \textbf{discarded} immediately \textbf{after the
+                encryption} is done. The \textbf{public key} is stored in the
+                \textbf{encrypted session data}.
+        \end{itemize}
+    }
+
+    \note[item]{
+        This is where the \textbf{sides diverge}.
+    }
+
+    \note[item]{
+        \begin{itemize}
+            \item The \textbf{encrypting} side gets its \textbf{private key}
+                from the \textit{ephemeral keypair}.
+
+                And it uses the \textbf{Megolm backup public key} as its public
+                key.
+            \item The \textbf{decrypting} side gets its \textbf{private key}
+                from the \textbf{Megolm backup private key}.
+
+                And it uses the \textbf{ephemeral public key} as its public key.
+        \end{itemize}
+    }
+
+    \note[item]{
+        Critically you \textbf{must have} the \textbf{Megolm backup private key}
+        to \textbf{decrypt} the key \textbf{backup}.
+    }
+
+    \note[item]{
+        For \textbf{each Megolm session} that we \textbf{back up} in key backup,
+        we \textbf{store} the \textbf{ephemeral public key} and the
+        \textbf{ciphertext} from AES together in the \textbf{encrypted session
+        data} object.
     }
 \end{frame}
 
 \begin{frame}{Key Backup}
     \includegraphics[width=\textwidth]{images/key-backup-zoomed}
 
-    \[
-        \textbf{ECDH}(A_{private}, B_{public}) = \textbf{ECDH}(B_{private}, A_{public}) = K_{shared}
-    \]
-
     \note[item]{
-        Recall that we need two keypairs for ECDH.
-        \begin{itemize}
-            \item The first keypair is the Megolm backup keypair.
-            \item The second keypair is the Epemeral keypair.
-        \end{itemize}
+        But there's \textbf{another item} that we store in this object: the
+        \textbf{MAC}.
     }
 
     \note[item]{
-        We can use either private key and the other keypair's public key and get
-        the same value out of ECDH.
-
-        \begin{itemize}
-            \item The encrypting side gets its private key from this
-                \textit{ephemeral keypair}. It's ephemeral because the private
-                part can be discarded immediately after the encryption is done.
-
-                Thus, it uses the Megolm backup public key as its public key.
-            \item The decrypting side gets its private key from the Megolm
-                backup private key.
-
-                Thus, it uses the ephemeral public key as its public key.
-        \end{itemize}
+        A \textbf{MAC} is a \textbf{Message Authentication Code}. It's basically
+        just a \textbf{hash} of the \textbf{ciphertext} that we use to
+        \textbf{verify} that it hasn't been \textbf{tampered} with by a
+        \textbf{malicious} or just straight up \textbf{incompetent} party.
     }
 
     \note[item]{
-        \textbf{Critically} you must have the Megolm backup private key to
-        decrypt the key backup. We will discuss how that is stored later.
+        We use \textbf{HMAC} to \textbf{generate the MAC} and \textbf{avoid
+        metadata attacks}. Recall that HMAC requires a key.
+    }
+    \note[item]{
+        Conviniently, we are \textbf{already using HKDF} to generate the
+        \textbf{AES key and initial vector}, so we can just use the \textbf{same
+        key derivation} to get the \textbf{HMAC key}.
     }
 
     \note[item]{
-        For each Megolm session that we back up in key backup, we store the
-        ephemeral public key and the ciphertext from AES together in the
-        encrypted session data object.
+        What \textit{should} happen is that we \textbf{pass} the
+        \textbf{ciphertext} into \textbf{HMAC}. However, the original
+        implementation in \textbf{libolm failed to do this} correctly and
+        instead just passed an \textbf{empty buffer}, and it has been de-facto
+        spec ever since.
     }
 
     \note[item]{
-        But there's another item that we store in this object: the MAC.
-    }
-
-    \note[item]{
-        Recall that MACs are meant to ensure that the ciphertext hasn't been
-        tampered with by a malicious or incompetent party.
-    }
-
-    \note[item]{
-        We get the HMAC key from the same HKDF as the AES key and IV.
-    }
-
-    \note[item]{
-        The other input to HMAC \textit{should} have been the ciphertext.
-        However, the original implementation in libolm failed to do this
-        correctly and instead just passed an empty buffer, and it has been
-        de-facto spec ever since.
-    }
-
-    \note[item]{
-        So, the MAC is not really useful at all in its current state. I'm hoping
-        that a future version of the spec fixes this. Maybe when we get signed
-        backups we will get that.
+        So, the \textbf{MAC} is \textbf{not really useful} at all in its
+        \textbf{current state}. I'm hoping that a future version of the spec
+        fixes this.
     }
 \end{frame}
 
 \section{Device Verification}
 \note{
-    Now, let's discuss device verification.
+    Now, let's discuss \textbf{device verification}.
 }
 
 \begin{frame}{Who Can We Send Keys To?}
-    \includegraphics[width=\textwidth]{images/other-stuff-to-device}
+    \includegraphics[width=\textwidth]{images/to-device-own-user}
 
     \note[item]{
-        Recall how I said that we only want to forward room keys to our
-        \textbf{verified} devices?
+        Let's go back to the big picture and notice these \textbf{arrows} that
+        represent \textbf{requesting keys} from our \textbf{own devices} and
+        \textbf{forwarding} them back.
     }
 
     \note[item]{
-        Now, we are going to discuss how verification status is determined.
+        Earlier I said that we \textbf{only} want to \textbf{forward} keys to
+        our \textbf{verified} devices?
+    }
+
+    \note[item]{
+        Now, we are going to discuss how \textbf{verification status} is
+        determined.
     }
 
     \note[item]{
@@ -661,107 +835,153 @@
     \includegraphics[width=\textwidth]{images/identity-device-verification-zoomed}
 
     \note[item]{
-        Remember, signatures use the \textit{private} key, and anyone who
-        possesses the \textit{public} key can verify the signature.
+        Remember, \textbf{asymmetric signatures} can only be \textbf{created} by
+        the \textbf{private} key, and anyone who possesses the \textbf{public}
+        key can \textbf{verify} the signature.
     }
 
     \note[item]{
-        Often, we use ``trust'' terminology. When we ``trust'' a key, we have a
-        signature (or chain of signatures) that sign the public key.
+        In Matrix, each device has a \textbf{device keypair}. The
+        \textbf{public} key is an \textbf{identifier} for the device.
     }
 
     \note[item]{
-        Ultimately, the key we want to trust is the other device key.
+        To \textbf{verify} a device, we \textbf{sign} the \textbf{device public
+        key}.
     }
 
     \note[item]{
-        We can use our device key to directly generate the signature for the
-        other device key.
-
-        But that is inconvenient. When we log in a new device, we will have to
-        create a signature from all our other devices for that new device. And
-        that device will have to create a signature for all of the existing
-        devices!
+        Often, we call this process \textbf{trusting} a key. We trust the key by
+        \textbf{creating a signature} for it.
+    }
+    \note[item]{
+        We \textbf{can} use our own \textbf{device private key} to
+        \textbf{directly trust} the \textbf{other device key}.
+    }
+    \note[item]{
+        But that is \textbf{inconvenient}. When we \textbf{log in} a \textbf{new
+        device}, all our \textbf{other devices} will need to \textbf{make a
+        signature for the new device}, and the \textbf{new device} will have to
+        \textbf{make a signature for all the existing devices}!
     }
 
     \note[item]{
-        So, we introduce a new user-wide key called the ``self-signing key''
-        because it signs our own device keys.
+        So, we introduce a \textbf{new user-wide key} called the
+        \textbf{``self-signing key''} because it \textbf{signs} our \textbf{own
+        devices}.
     }
 
     \note[item]{
-        We use the self-signing key to sign the device keys but how do we know
-        if we should trust the self-signing key?
+        We use the \textbf{self-signing} key to \textbf{sign the device keys}
+        but \textbf{how} do we know if we should \textbf{trust} the
+        \textbf{self-signing key?}
     }
 
     \note[item]{
-        That's where the \textbf{master key} comes in. The master key signs the
-        self-signing key.
+        That's where the \textbf{master key} comes in. The master key
+        \textbf{signs} the \textbf{self-signing key}.
     }
 
     \note[item]{
-        We then trust the master key by signing it with our device private key.
+        We then \textbf{trust} the master key by \textbf{signing} it with our
+        \textbf{device private key}.
     }
 
     \note[item]{
-        So the \textbf{chain-of-trust} is device private key $\rightarrow$
-        master public key which corresponds to its private key $\rightarrow$
-        self-signing public key which corresponds to its private key
-        $\rightarrow$ device public key.
+        This creates a \textbf{chain of trust}.
+
+        The \textbf{device private key} signs the \textbf{master public key}
+        which corresponds to the \textbf{master private key}.
+
+        The \textbf{master private key} signs the \textbf{self-signing public
+        key} which corresponds to the \textbf{self-signing private key}.
+
+        And the \textbf{self-signing private key} signs \textbf{all} of the
+        \textbf{device public keys}.
     }
 
     \note[item]{
-        This allows us to trust a single key (in this case, the master key) and
-        then trust all of our own devices.
+        This allows us to \textbf{trust} a \textbf{single key} (in this case,
+        the \textbf{master key}) and then through the \textbf{chain of trust},
+        we can trust \textbf{all} of our \textbf{own devices}.
     }
 \end{frame}
 
 \section{User Verification}
+\note{
+    Sometimes, we want to \textbf{trust a user} so that we know that all of the
+    \textbf{devices on their account} are \textbf{under their control}.
+}
 
 \begin{frame}{Additional Identity Verification}
-    \includegraphics[width=\textwidth]{images/message-security}
+    \includegraphics[width=\textwidth]{images/identity-user-verification}
 
     \note[item]{
-        Sometimes, we want to trust a user so that we know that all of the
-        devices on their account are under their control. If a new device is
-        logged in, we will know if they control the device if it's signed.
+        If a \textbf{new device is logged in}, we will know if they control the
+        device if they have \textbf{signed} it.
+    }
+    \note[item]{
+        If some \textbf{malicious actor} logged in a new device, they would
+        \textbf{not} be able to \textbf{sign} it, and we would know the
+        \textbf{other user} has been \textbf{compromised}.
+    }
+\end{frame}
+
+\begin{frame}{Additional Identity Verification}
+    \includegraphics[width=\textwidth]{images/identity-user-verification-zoomed}
+
+    \note[item]{
+        The user we want to trust has \textbf{already signed} their devices with
+        their \textbf{self-signing key}, which is itself \textbf{signed} by
+        their \textbf{master key}. So, if we are able to \textbf{trust their
+        master key}, we will have a \textbf{chain of trust} to all of their
+        devices.
     }
 
     \note[item]{
-        They have already signed their devices with their self-signing key,
-        which is itself signed by their master key. So, if we are able to trust
-        their master key, we will have a chain of trust to all of their devices.
+        This is where the \textbf{user-signing key} comes into play. The
+        user-signing key \textbf{signs other users' master keys} and is itself
+        \textbf{signed} by our \textbf{own master key}.
     }
 
     \note[item]{
-        This means that we know that when we send the keys to their devices,
-        they are actually under their control.
-    }
+        This creates another \textbf{chain of trust}.
 
-    \note[item]{
-        This is where the ``user-signing key'' comes into play. The user-signing
-        key signs other users' master keys and is itself signed by our master
-        key.
-    }
+        The \textbf{device private key} signs the \textbf{master public key}
+        which corresponds to the \textbf{master private key}.
 
-    \note[item]{
-        So the \textbf{chain-of-trust} is device private key $\rightarrow$
-        master public key which corresponds to its private key $\rightarrow$
-        user-signing public key which corresponds to its private key
-        $\rightarrow$ other user's public master key which corresponds to its
-        private key $\rightarrow$ other users self-signing key which corresponds
-        to its private key $\rightarrow$ other users device public keys.
+        The \textbf{master private key} signs the \textbf{user-signing public
+        key} which corresponds to the \textbf{user-signing private key}.
+
+        The \textbf{user-signing private key} signs other users' \textbf{master
+        public keys}.
+
+        We can \textbf{verify} the signatures by the other user's \textbf{master
+        private key} using their \textbf{master public key}.
+
+        Since their \textbf{master private key} signed their \textbf{self-signing
+        public key}, we can \textbf{verify} the signature and \textbf{trust}
+        their \textbf{self-signing key}.
+
+        Since their \textbf{self-signing private key} signed their \textbf{device
+        public keys}, we can \textbf{verify} the signatures and \textbf{trust}
+        their \textbf{device keys}.
     }
 \end{frame}
 
 \section{Server Side Secret Storage (SSSS)}
+\note{
+    Wow, that's a lot of keys! Where are they stored?
+}
 
 \begin{frame}{Don't Forget Your Keys}
     \includegraphics[width=\textwidth]{images/overview}
 
     \note[item]{
-        You may have noticed there's a lot of private keys involved in all of
-        this.
+        The \textbf{public keys} can be stored on the \textbf{server}.
+    }
+    \note[item]{
+        However, the \textbf{private keys} need to remain in the user's control.
     }
 
 \end{frame}
@@ -770,91 +990,133 @@
     \includegraphics[width=\textwidth]{images/secret-keys-highlighted}
 
     \note[item]{
-        There are private keys for key backup, user signing, and device signing
-        and they all need to be stored for all of this to work properly.
+        Today, we've seen private keys for \textbf{key backup}, \textbf{user
+        signing}, and \textbf{device signing} as well as the \textbf{master
+        key}.
     }
 
     \note[item]{
-        The keys are stored each of your devices and can be shared with your
-        other verified devices using encrypted to-device events.
+        These keys are \textbf{stored} on \textbf{each} of \textbf{your devices}
+        and can be \textbf{shared} with your \textbf{other verified devices}
+        using those Olm-encrypted \textbf{to-device} events.
     }
 
     \note[item]{
-        But what if you sign out of all of your devices or lose access to them?
+        But what if you \textbf{sign out} of all of your devices or \textbf{lose
+        access} to them?
     }
-
 \end{frame}
 
 \begin{frame}{Don't Forget Your Keys}
     \includegraphics[width=\textwidth]{images/other-stuff-ssss}
 
     \note[item]{
-        That's where server-side secret storage comes in: it allows you to store
-        your keys encrypted within account data on the server.
+        That's where \textbf{server-side secret storage} (also known as
+        \textbf{SSSS}, or \textbf{quadruple S}) comes in.
     }
-
+    \note[item]{
+        It allows you to \textbf{store} your keys \textbf{encrypted} within
+        \textbf{account data} on the \textbf{server}.
+    }
+    \note[item]{
+        Let's zoom in and see what's going on.
+    }
 \end{frame}
 
 \begin{frame}{Don't Forget Your Keys}
     \includegraphics[width=\textwidth]{images/ssss-zoomed}
 
     \note[item]{
-        The key that they are encrypted using is basically the recovery key.
-        There is an HKDF transformation which gives you the actual key, but it's
-        basically just your recovery key that unlocks the encrypted account
-        data.
+        The \textbf{key} that SSSS uses to \textbf{encrypt} the account data is
+        effectively the \textbf{recovery key}.
+    }
+    \note[item]{
+        There is a \textbf{base58-decode} and an \textbf{HKDF} transformation
+        which \textbf{produces} the \textbf{actual key}, but it's basically just
+        your \textbf{recovery key} that \textbf{unlocks} the \textbf{encrypted
+        account data}.
+    }
+    \note[item]{
+        So, you can probably see that if you \textbf{lose your recovery key},
+        and you have \textbf{no signed-in devices}, there is \textbf{no way to
+        recover the private keys}. This is why it's important to \textbf{store
+        the recovery key in a safe place like a password manager}.
     }
 
     \note[item]{
-        This bottom part isn't actually strictly necessary. It allows you to
-        verify that your recovery key is correct. If you want the details here,
-        you can read the blog post associated with this talk.
+        So, what's this \textbf{bottom part?} It's \textbf{not} actually
+        \textbf{strictly necessary} for the \textbf{encryption}, but it allows
+        you to \textbf{verify} that your \textbf{recovery key} is
+        \textbf{correct} before trying to decrypt account data. If you want the
+        details here, you can \textbf{read the blog post} associated with this
+        talk.
     }
-
 \end{frame}
 
 \begin{frame}{Big Picture}
     \includegraphics[width=\textwidth]{images/overview}
 
     \note[item]{
-        Let's go back to the overview.
+        Let's go back once more to the overview.
     }
     \note[item]{
-        We've talked about each piece of this puzzle.
+        We've talked about each piece of this diagram.
         \begin{itemize}
-            \item We talked about to-device events
-            \item We talked about key backup
-            \item We talked about self-signing of devices
-            \item We talked about signing of other users
-            \item And then we talked about server-side secret storage
+            \item We talked about the \textbf{Megolm session}
+            \item We talked about \textbf{to-device events}
+            \item We talked about \textbf{key backup}
+            \item We talked about \textbf{self-signing of devices}
+            \item We talked about \textbf{signing of other users}
+            \item And then we talked about \textbf{server-side secret storage}
         \end{itemize}
     }
     \note[item]{
-        I hope that this presentation has helped you understand how it fits
-        together.
+        I hope that this presentation has helped you \textbf{understand} how it
+        \textbf{fits together}.
     }
     \note[item]{
-        My goal is to convince people that Matrix cryptography is not scary.
-        It's complex, but not inaccessible.
+        My \textbf{goal} is to \textbf{convince} people that Matrix
+        \textbf{cryptography is not scary}. It's \textbf{complex}, but not
+        \textbf{inaccessible}.
     }
     \note[item]{
-        If you have access to all of the underlying cryptography primitives, all
-        of this is something that any security-conscious programmer could
-        implement.
+        If you have \textbf{access} to all of the \textbf{underlying
+        cryptography primitives}, all of this is something that a
+        \textbf{security-conscious programmer} could \textbf{implement}.
     }
     \note[item]{
-        You almost certainly should not implement the cryptography primitives
-        yourself, but composing them together is not that bad.
-    }
-    \note[item]{
-        And with that, I'll open it up to questions
+        You almost certainly \textbf{should not} implement the
+        \textbf{cryptography primitives} yourself, but \textbf{composing} them
+        together is doable.
     }
 \end{frame}
 
 \begin{frame}{Thank You for Listening!}
+    \note[item]{
+        And with that, I'd like to \textbf{thank you for listening!}
+    }
+    \note[item]{
+        You can \textbf{scan the QR code} for the \textbf{blog post} associated
+        with this talk. The \textbf{slides} are \textbf{available to download}
+        there.
+    }
+    \note[item]{
+        \textit{If there is time:} I believe we have a few minutes for
+        any questions you may have.
+    }
+    \note[item]{
+        \textit{If there is \textbf{not} time:} It looks like we don't have time
+        for questions, but I'm happy to talk to you off-stage about any
+        questions you have.
+    }
+
     \center{Questions?}
 
-    \includegraphics[width=0.5\textwidth]{images/article-qr}
+    \begin{center}
+        \includegraphics[width=0.5\textwidth]{images/article-qr}
+        \scriptsize
+        \href{https://sumnerevans.com/posts/matrix/cryptographic-key-infrastructure}{sumnerevans.com/posts/matrix/cryptographic-key-infrastructure}
+    \end{center}
 \end{frame}
 
 \end{document}
