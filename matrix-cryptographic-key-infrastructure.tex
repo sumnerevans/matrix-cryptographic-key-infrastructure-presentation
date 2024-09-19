@@ -31,6 +31,14 @@
 \patchcmd{\beamer@sectionintoc}{\vskip1.5em}{\vskip0.5em}{}{}
 \makeatother
 
+\makeatletter 
+\def\beamer@framenotesbegin{% at beginning of slide
+     \usebeamercolor[fg]{normal text}
+      \gdef\beamer@noteitems{}% 
+      \gdef\beamer@notes{}% 
+}
+\makeatother
+
 % Math stuffs
 \newcommand{\Z}{\mathbb{Z}}
 \newcommand{\R}{\mathbb{R}}
@@ -58,7 +66,7 @@
     \end{minipage}
 }
 
-\newcommand{\frameoutput}[1]{\frame{\colorbox{white}{#1}}}
+%\newcommand{\frameoutput}[1]{\frame{\colorbox{white}{#1}}}
 
 \newcommand{\tikzmark}[1]{%
 \tikz[baseline=-0.55ex,overlay,remember picture] \node[inner sep=0pt,] (#1)
