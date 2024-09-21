@@ -4,7 +4,7 @@
 
 \DeclareOption{handout}{\PassOptionsToClass{\CurrentOption}{beamer}} 
 \ProcessOptions\relax
-\LoadClass{beamer}
+\LoadClass[aspectratio=169]{beamer}
 
 % Define colors
 \definecolor{beeperorange}{RGB}{255, 155, 113}

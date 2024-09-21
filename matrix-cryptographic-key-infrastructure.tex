@@ -175,7 +175,7 @@
 \end{frame}
 
 \begin{frame}{Big Picture}
-    \includegraphics[width=\textwidth]{images/overview}
+    \center{\includegraphics[width=0.9\textwidth]{images/overview}}
 
     \note[item]{
         Let's take a look at what we are going to talk about today. This diagram
@@ -212,7 +212,7 @@
 \end{frame}
 
 \begin{frame}{Big Picture: Message Security}
-    \includegraphics[width=\textwidth]{images/message-security}
+    \center{\includegraphics[width=0.9\textwidth]{images/message-security}}
 
     \note[item]{
         It's important that we \textbf{don't loose sight} of the reason for all
@@ -246,7 +246,7 @@
 \end{frame}
 
 \begin{frame}{Big Picture: Identity}
-    \includegraphics[width=\textwidth]{images/identity-overview}
+    \center{\includegraphics[width=0.9\textwidth]{images/identity-overview}}
 
     \note[item]{
         Let's move on to identity. The highlighted parts of the diagram provide
@@ -259,7 +259,7 @@
 \end{frame}
 
 \begin{frame}{Big Picture: Identity: Device Verification}
-    \includegraphics[width=\textwidth]{images/identity-device-verification}
+    \center{\includegraphics[width=0.9\textwidth]{images/identity-device-verification}}
 
     \note[item]{
         Here we have the infrastructure necessary for determining if we
@@ -268,7 +268,7 @@
 \end{frame}
 
 \begin{frame}{Big Picture: Identity: User Verification}
-    \includegraphics[width=\textwidth]{images/identity-user-verification}
+    \center{\includegraphics[width=0.9\textwidth]{images/identity-user-verification}}
 
     \note[item]{
         And here we have the infrastructure necessary for determining if we
@@ -277,7 +277,7 @@
 \end{frame}
 
 \begin{frame}{Big Picture: The Other Stuff}
-    \includegraphics[width=\textwidth]{images/other-stuff}
+    \center{\includegraphics[width=0.9\textwidth]{images/other-stuff}}
 
     \note[item]{
         So what is all of the other stuff? That is the \textbf{infrastructure}
@@ -286,7 +286,7 @@
 \end{frame}
 
 \begin{frame}{Big Picture: The Other Stuff: To-Device}
-    \includegraphics[width=\textwidth]{images/other-stuff-to-device}
+    \center{\includegraphics[width=0.9\textwidth]{images/other-stuff-to-device}}
 
     \note[item]{
         For example, in this arrow represents \textbf{sending} the Megolm
@@ -295,7 +295,7 @@
 \end{frame}
 
 \begin{frame}{Big Picture: The Other Stuff: Key Backup}
-    \includegraphics[width=\textwidth]{images/other-stuff-key-backup}
+    \center{\includegraphics[width=0.9\textwidth]{images/other-stuff-key-backup}}
 
     \note[item]{
         This \textbf{lower-right section} of the diagram represents \textbf{key
@@ -305,7 +305,7 @@
 \end{frame}
 
 \begin{frame}{Big Picture: The Other Stuff: Secure Secret Storage and Sharing}
-    \includegraphics[width=\textwidth]{images/other-stuff-ssss}
+    \center{\includegraphics[width=0.9\textwidth]{images/other-stuff-ssss}}
 
     \note[item]{
         And over here on the \textbf{left} we have the infrastructure necessary
@@ -315,7 +315,7 @@
 \end{frame}
 
 \begin{frame}{Big Picture}
-    \includegraphics[width=\textwidth]{images/overview}
+    \center{\includegraphics[width=0.9\textwidth]{images/overview}}
 
     \note[item]{
         So, that's a \textbf{quick overview} of this diagram.
@@ -340,7 +340,7 @@
 }
 
 \begin{frame}{Encryption: Symmetric vs Asymmetric}
-    There are two main categories of encryption schemes:
+    There are two main categories of encryption schemes: \pause
 
     \begin{itemize}
         \item \textbf{Symmetric} --- both \textbf{the encryptor and the
@@ -353,14 +353,19 @@
             required to decrypt the message
     \end{itemize}
 
-    \note[item]{
+    \note[item]<1>{
         Let's start with \textbf{encryption}. Encryption allows us to make a
         message that can only be read by another user who has the key.
     }
-    \note[item]{
-        \textit{Read slide}
+    \note[item]<1>{
+        Let's start with \textbf{encryption}. Encryption allows us to make a
+        message that can only be read by another user who has the key.
     }
-    \note[item]{
+    \note[item]<2>{
+        Matrix uses Advanced Encryption Scheme or AES for its symmetric
+        encryption needs.
+    }
+    \note[item]<3>{
         There are a few variants of asymmetric encryption schemes. Matrix uses
         elliptic-curves for its asymmetric encryption needs.
     }
@@ -503,7 +508,7 @@
 \end{frame}
 
 \begin{frame}{Big Picture}
-    \includegraphics[width=\textwidth]{images/overview}
+    \center{\includegraphics[width=0.9\textwidth]{images/overview}}
 
     \note[item]{
         Let's go \textbf{back to the big picture} now. Recall that the
@@ -530,7 +535,7 @@
 }
 
 \begin{frame}{Big Picture: Message Security}
-    \includegraphics[width=\textwidth]{images/message-security}
+    \center{\includegraphics[width=0.9\textwidth]{images/message-security}}
 
     \note[item]{
         Remember, what we are \textbf{trying to share} is the \textbf{Megolm
@@ -545,7 +550,7 @@
 \end{frame}
 
 \begin{frame}{Encrypted Olm Events}
-    \includegraphics[width=\textwidth]{images/other-stuff-to-device}
+    \center{\includegraphics[width=0.9\textwidth]{images/other-stuff-to-device}}
 
     \note[item]{
         \textbf{Encrypted Olm events} are represented by the \textbf{arrows}
@@ -560,7 +565,8 @@
 \end{frame}
 
 \begin{frame}{Encrypted Olm Events}
-    \includegraphics[width=\textwidth]{images/to-device-zoomed}
+    \vspace{-1em}
+    \center{\includegraphics[width=0.8\textwidth]{images/to-device-zoomed}}
 
     \note[item]{
         I got rid of all the irrelevant nodes
@@ -627,7 +633,7 @@
 \end{frame}
 
 \begin{frame}{Key Backup}
-    \includegraphics[width=\textwidth]{images/other-stuff-key-backup}
+    \center{\includegraphics[width=0.9\textwidth]{images/other-stuff-key-backup}}
 
     \note[item]{
         This ss where \textbf{key backup} comes into play. Key backup allows us
@@ -642,7 +648,8 @@
 \end{frame}
 
 \begin{frame}{Key Backup}
-    \includegraphics[width=\textwidth]{images/key-backup-zoomed}
+    \vspace{-1em}
+    \center{\includegraphics[width=0.85\textwidth]{images/key-backup-zoomed}}
 
     \note[item]{
         In the \textbf{middle} here we have the ``key backup'' in
@@ -696,12 +703,10 @@
 \end{frame}
 
 \begin{frame}{Key Backup}
-    \begin{center}
-    \includegraphics[width=0.9\textwidth]{images/key-backup-zoomed}
-    \end{center}
+    \vspace{-1em}
+    \center{\includegraphics[width=0.7\textwidth]{images/key-backup-zoomed}}
 
-    \vspace{-2em}
-
+    \vspace{-3em}
     \[\textbf{ECDH}(A_{private}, B_{public}) = \textbf{ECDH}(B_{private}, A_{public}) = K_{shared}\]
 
     \note[item]{
@@ -758,7 +763,8 @@
 \end{frame}
 
 \begin{frame}{Key Backup}
-    \includegraphics[width=\textwidth]{images/key-backup-zoomed}
+    \vspace{-1em}
+    \center{\includegraphics[width=0.85\textwidth]{images/key-backup-zoomed}}
 
     \note[item]{
         But there's \textbf{another item} that we store in this object: the
@@ -803,7 +809,7 @@
 }
 
 \begin{frame}{Who Can We Send Keys To?}
-    \includegraphics[width=\textwidth]{images/to-device-own-user}
+    \center{\includegraphics[width=0.9\textwidth]{images/to-device-own-user}}
 
     \note[item]{
         Let's go back to the big picture and notice these \textbf{arrows} that
@@ -827,7 +833,7 @@
 \end{frame}
 
 \begin{frame}{Signatures}
-    \includegraphics[width=\textwidth]{images/identity-device-verification}
+    \center{\includegraphics[width=0.9\textwidth]{images/identity-device-verification}}
 
     \note[item]{
         \textbf{Signatures!}
@@ -922,7 +928,7 @@
 }
 
 \begin{frame}{Additional Identity Verification}
-    \includegraphics[width=\textwidth]{images/identity-user-verification}
+    \center{\includegraphics[width=0.9\textwidth]{images/identity-user-verification}}
 
     \note[item]{
         If a \textbf{new device is logged in}, we will know if they control the
@@ -936,6 +942,7 @@
 \end{frame}
 
 \begin{frame}{Additional Identity Verification}
+    \vspace{-0.5em}
     \includegraphics[width=\textwidth]{images/identity-user-verification-zoomed}
 
     \note[item]{
@@ -983,7 +990,7 @@
 }
 
 \begin{frame}{Don't Forget Your Keys}
-    \includegraphics[width=\textwidth]{images/overview}
+    \center{\includegraphics[width=0.9\textwidth]{images/overview}}
 
     \note[item]{
         The \textbf{public keys} can be stored on the \textbf{server}.
@@ -995,7 +1002,7 @@
 \end{frame}
 
 \begin{frame}{Don't Forget Your Keys}
-    \includegraphics[width=\textwidth]{images/secret-keys-highlighted}
+    \center{\includegraphics[width=0.9\textwidth]{images/secret-keys-highlighted}}
 
     \note[item]{
         Today, we've seen private keys for \textbf{key backup}, \textbf{user
@@ -1016,7 +1023,7 @@
 \end{frame}
 
 \begin{frame}{Don't Forget Your Keys}
-    \includegraphics[width=\textwidth]{images/other-stuff-ssss}
+    \center{\includegraphics[width=0.9\textwidth]{images/other-stuff-ssss}}
 
     \note[item]{
         That's where \textbf{secure secret storage and sharing} (also known as
@@ -1032,7 +1039,8 @@
 \end{frame}
 
 \begin{frame}{Don't Forget Your Keys}
-    \includegraphics[width=\textwidth]{images/ssss-zoomed}
+    \vspace{-1em}
+    \center{\includegraphics[width=0.8\textwidth]{images/ssss-zoomed}}
 
     \note[item]{
         The \textbf{key} that SSSS uses to \textbf{encrypt} the account data is
@@ -1062,7 +1070,7 @@
 \end{frame}
 
 \begin{frame}{Big Picture}
-    \includegraphics[width=\textwidth]{images/overview}
+    \center{\includegraphics[width=0.9\textwidth]{images/overview}}
 
     \note[item]{
         Let's go back once more to the overview.
@@ -1122,7 +1130,10 @@
     \center{Questions?}
 
     \begin{center}
-        \includegraphics[width=0.5\textwidth]{images/article-qr}
+        \vspace{-.5em}
+        \includegraphics[width=0.4\textwidth]{images/article-qr}
+
+        \vspace{-1.5em}
         \scriptsize
         \href{https://sumnerevans.com/posts/matrix/cryptographic-key-infrastructure}{sumnerevans.com/posts/matrix/cryptographic-key-infrastructure}
     \end{center}
